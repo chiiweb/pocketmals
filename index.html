@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#172033">
+    <meta name="description" content="Pocketmals — explore the Mellora region, befriend Pocketmals, and keep a save file that survives updates.">
+    <title>Pocketmals</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="preload" href="./pokemon-ds-font.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="./rosebud-game-defaults.css">
+    <style>
+      @font-face {
+        font-family: "Pokemon DS";
+        src: url("./pokemon-ds-font.ttf") format("truetype");
+        font-display: block;
+        font-weight: 400 700;
+      }
+
+      :root {
+        color-scheme: dark;
+        font-family: "Pokemon DS", "Trebuchet MS", Arial, sans-serif;
+        background: #101622;
+        color: #eef2dc;
+        font-synthesis: none;
+        --ds-shell-color: #f6f7f4;
+        --ds-trim-color: color-mix(in srgb, var(--ds-shell-color), #8995a2 22%);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        margin: 0;
+        background:
+          radial-gradient(ellipse at 50% 28%, #293752 0, #172033 50%, #101622 100%);
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        margin: 0;
+        padding: 6px clamp(8px, 1.5vw, 18px);
+      }
+
+      .masthead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex: 0 0 auto;
+        padding: 0 2px 8px;
+      }
+
+      .brand {
+        margin: 0;
+        color: #f5f7f9;
+        font-size: clamp(18px, 3vw, 26px);
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        line-height: 1;
+        text-shadow: 0 2px 0 #73849a, 0 4px 12px #0008;
+      }
+
+      .shell-picker {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #cbd4e1;
+        font-size: 12px;
+      }
+
+      .shell-picker input {
+        width: 40px;
+        height: 32px;
+        padding: 2px;
+        border: 1px solid #71839a;
+        border-radius: 6px;
+        background: #26354b;
+        cursor: pointer;
+      }
+
+      .game-stage {
+        position: relative;
+        display: flex;
+        flex: 1 1 0;
+        width: min(100%, 1120px);
+        min-height: 0;
+        margin: 0 auto;
+        padding: clamp(8px, 1.5vh, 14px) clamp(10px, 1.5vw, 18px);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        overflow: hidden;
+        border: 7px solid color-mix(in srgb, var(--ds-shell-color), #8995a2 22%);
+        border-radius: clamp(18px, 3vw, 30px);
+        background:
+          radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--ds-shell-color), #fff 20%) 0, var(--ds-shell-color) 66%, color-mix(in srgb, var(--ds-shell-color), #8995a2 16%) 100%);
+        box-shadow:
+          inset 0 0 0 3px #fff9,
+          inset 0 0 0 6px #aab4bf88,
+          0 0 0 3px #aeb8c3,
+          0 8px 24px #0007;
+      }
+
+      .game-stage::before,
+      .game-stage::after {
+        position: absolute;
+        z-index: 0;
+        top: 50%;
+        width: 5px;
+        height: 5px;
+        border: 1px solid #c5d0d8;
+        border-radius: 50%;
+        background: #71dcaa;
+        box-shadow: 0 0 8px #71dcaa;
+        content: "";
+      }
+
+      .game-stage::before {
+        left: 12px;
+      }
+
+      .game-stage::after {
+        right: 12px;
+      }
+
+      .top-bezel,
+      .bottom-bezel {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 auto;
+        border: 3px solid var(--ds-trim-color);
+        border-radius: 11px;
+        background: color-mix(in srgb, var(--ds-shell-color), #101722 88%);
+        box-shadow:
+          inset 0 0 0 3px #1b2636,
+          inset 0 0 0 5px #596678,
+          0 2px 4px #000b;
+      }
+
+      .top-bezel {
+        padding: 9px;
+      }
+
+      .bottom-bezel {
+        padding: 8px;
+        border-radius: 7px;
+      }
+
+      .hinge {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 5px;
+        width: min(100%, 760px);
+        border-top: 1px solid #101722;
+        border-bottom: 1px solid #99a6b5;
+        background: linear-gradient(#1c2533, #4a586b, #202a39);
+      }
+
+      .lens {
+        position: absolute;
+        z-index: 2;
+        top: 9px;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        transform: translateX(-50%);
+        border: 1px solid #91a3b8;
+        border-radius: 50%;
+        background: #263f62;
+        box-shadow: 0 0 4px #78adf7;
+      }
+
+      #c,
+      #lower-screen {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        touch-action: none;
+      }
+
+      .nickname-card {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        display: flex;
+        width: min(310px, calc(100% - 28px));
+        flex-direction: column;
+        gap: 10px;
+        transform: translate(-50%, -50%);
+        padding: 16px;
+        border: 2px solid #a9b5c7;
+        border-radius: 10px;
+        background: #172338;
+        box-shadow: 0 8px 28px #000c;
+        color: #f2f1df;
+        font-size: 12px;
+      }
+
+      .nickname-card[hidden] {
+        display: none;
+      }
+
+      .nickname-card label {
+        color: #ffd45a;
+        font-weight: bold;
+      }
+
+      .nickname-card input {
+        min-height: 40px;
+        padding: 8px;
+        border: 1px solid #899bb2;
+        border-radius: 5px;
+        background: #f9f5e8;
+        color: #172338;
+        font: bold 15px "Pokemon DS", "Trebuchet MS", Arial, sans-serif;
+      }
+
+      .nickname-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .nickname-actions button {
+        min-height: 36px;
+        padding: 6px 10px;
+        border: 1px solid #9aa9bb;
+        border-radius: 5px;
+        background: #34445c;
+        color: #fff;
+        font: bold 11px "Pokemon DS", "Trebuchet MS", Arial, sans-serif;
+      }
+
+      .controls {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex: 0 0 auto;
+        width: min(100%, 620px);
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 2px 4px 0;
+      }
+
+      .help {
+        display: none;
+      }
+
+      .pad {
+        display: grid;
+        grid-template:
+          ". up ." 30px
+          "left center right" 30px
+          ". down ." 30px
+          / 30px 30px 30px;
+        width: 94px;
+        height: 94px;
+        flex: 0 0 auto;
+        place-content: center;
+        border: 2px solid var(--ds-trim-color);
+        border-radius: 50%;
+        background: radial-gradient(circle at 38% 30%, #fff, color-mix(in srgb, var(--ds-shell-color), #cbd4dd 28%) 72%);
+        box-shadow: inset 0 2px 5px #fff, 0 3px 0 var(--ds-trim-color);
+      }
+
+      .actions {
+        position: relative;
+        width: 112px;
+        height: 92px;
+        flex: 0 0 auto;
+      }
+
+      .speaker-grille {
+        width: 38px;
+        height: 58px;
+        flex: 0 0 auto;
+        background: radial-gradient(circle, #8b98a5 1px, transparent 1.7px) 0 0 / 7px 7px;
+        opacity: 0.75;
+      }
+
+      .pad button,
+      .actions button {
+        min-width: 38px;
+        min-height: 38px;
+        border: 2px solid var(--ds-trim-color);
+        border-radius: 8px;
+        background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--ds-shell-color), #e6ebf0 50%) 70%, color-mix(in srgb, var(--ds-shell-color), #cbd4dd 35%));
+        box-shadow: inset 0 1px 1px #fff, 0 3px 0 var(--ds-trim-color), 0 4px 7px #26344844;
+        color: #46566a;
+        font: bold 15px "Pokemon DS", "Trebuchet MS", Arial, sans-serif;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      .pad button {
+        z-index: 1;
+        width: 30px;
+        min-width: 0;
+        height: 30px;
+        min-height: 0;
+        padding: 0;
+        border-width: 1px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+
+      .pad button:active,
+      .actions button:active {
+        transform: translateY(2px) scale(0.96);
+        box-shadow: inset 0 2px 3px #1119, 0 1px 0 #151c27;
+        background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--ds-shell-color), #dce3e9 42%));
+      }
+
+      [data-k="up"] { grid-area: up; }
+      [data-k="left"] { grid-area: left; }
+      [data-k="down"] { grid-area: down; }
+      [data-k="right"] { grid-area: right; }
+
+      .pad-center {
+        grid-area: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--ds-trim-color);
+        border-radius: 4px;
+        background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--ds-shell-color), #dce3e9 42%));
+        box-shadow: inset 0 1px 2px #fff, 0 2px 0 var(--ds-trim-color);
+      }
+
+      .actions button {
+        position: absolute;
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        min-height: 42px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 28%, #fff, color-mix(in srgb, var(--ds-shell-color), #e7ecf1 45%) 68%, color-mix(in srgb, var(--ds-shell-color), #cbd4dc 30%));
+        box-shadow: inset 0 2px 2px #fff, 0 3px 0 var(--ds-trim-color), 0 4px 7px #26344844;
+        font-size: 14px;
+        text-shadow: 0 1px 0 #fff;
+      }
+
+      .actions button:nth-child(1) {
+        top: 2px;
+        right: 7px;
+        color: #c85d56;
+      }
+
+      .actions button:nth-child(2) {
+        bottom: 2px;
+        right: 7px;
+        color: #4a77b7;
+      }
+
+      .actions button:nth-child(3) {
+        bottom: 2px;
+        left: 7px;
+        color: #7a5aad;
+      }
+
+      .actions button:nth-child(4) {
+        top: 2px;
+        left: 7px;
+        color: #478c70;
+      }
+
+      .actions button:active {
+        background: radial-gradient(circle at 35% 28%, #e8edf2, #cbd4dc 68%);
+      }
+
+      .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0;
+        flex: 0 0 auto;
+        color: #8392a8;
+        font-size: 12px;
+      }
+
+      .sound-toggle {
+        min-height: 32px;
+        padding: 4px 10px;
+        border: 1px solid #71839a;
+        border-radius: 6px;
+        background: #26354b;
+        color: #e9efdc;
+        font: bold 12px "Pokemon DS", "Trebuchet MS", Arial, sans-serif;
+        cursor: pointer;
+      }
+
+      .sound-toggle:hover {
+        background: #344760;
+      }
+
+      .sound-toggle:focus-visible,
+      button:focus-visible,
+      .shell-picker input:focus-visible {
+        outline: 2px solid #ffd45a;
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 600px) {
+        .app {
+          padding: 6px 6px;
+        }
+
+        .game-stage {
+          flex: 1 1 0;
+          width: 100%;
+          padding-right: 12px;
+          padding-left: 12px;
+          border-width: 5px;
+        }
+
+        .masthead {
+          padding-bottom: 6px;
+        }
+
+        .controls {
+          width: min(100%, 340px);
+          gap: 8px;
+        }
+
+        .pad {
+          grid-template:
+              ". up ." 24px
+              "left center right" 24px
+              ". down ." 24px
+              / 24px 24px 24px;
+            width: 76px;
+            height: 76px;
+        }
+
+        .pad button,
+        .pad-center {
+          width: 24px;
+          min-width: 0;
+          height: 24px;
+          min-height: 0;
+        }
+
+        .actions {
+          width: 94px;
+          height: 82px;
+        }
+
+        .actions button {
+          width: 38px;
+          min-width: 38px;
+          height: 38px;
+          min-height: 38px;
+          font-size: 12px;
+        }
+
+        .footer {
+          gap: 8px;
+          font-size: 9px;
+        }
+
+        .shell-picker {
+          gap: 5px;
+          font-size: 10px;
+        }
+
+        .shell-picker input {
+          width: 34px;
+          height: 28px;
+        }
+
+        .speaker-grille {
+          width: 22px;
+          height: 45px;
+          background-size: 6px 6px;
+        }
+      }
+
+      @media (max-height: 560px) {
+        .app {
+          position: relative;
+          min-height: 0;
+          padding: 0;
+        }
+
+        .masthead {
+          position: absolute;
+          z-index: 3;
+          top: 4px;
+          right: 12px;
+          padding: 0;
+        }
+
+        .brand {
+          display: none;
+        }
+
+        .game-stage {
+          width: min(100%, 1120px);
+        }
+
+        .footer {
+          position: absolute;
+          z-index: 3;
+          top: 4px;
+          left: 12px;
+        }
+
+        .footer span {
+          display: none;
+        }
+
+        .sound-toggle {
+          min-height: 28px;
+          padding: 3px 8px;
+          font-size: 9px;
+        }
+
+        .controls {
+          padding: 2px 4px 0;
+          padding-bottom: 0;
+        }
+
+        .pad {
+          grid-template:
+            ". up ." 20px
+            "left center right" 20px
+            ". down ." 20px
+            / 20px 20px 20px;
+          width: 66px;
+          height: 66px;
+        }
+
+        .pad button {
+          width: 20px;
+          min-width: 0;
+          height: 20px;
+          min-height: 0;
+        }
+
+        .pad-center {
+          width: 20px;
+          height: 20px;
+          font-size: 9px;
+        }
+
+        .actions {
+          width: 78px;
+          height: 60px;
+        }
+
+        .actions button {
+          width: 34px;
+          min-width: 34px;
+          height: 34px;
+          min-height: 34px;
+          font-size: 10px;
+        }
+
+        .speaker-grille {
+          height: 36px;
+        }
+      }
+
+
+      /* refined classic ds shell + responsive screen fit */
+      .app { padding: 5px clamp(6px, 1.2vw, 16px); gap: 5px; }
+      .masthead { padding: 0 2px 4px; }
+      .game-stage {
+        width: min(100%, 1120px);
+        padding: clamp(5px, 1vh, 10px) clamp(6px, 1vw, 12px);
+        gap: 4px;
+        border-width: 6px;
+        border-radius: 24px;
+      }
+      .top-bezel { padding: 5px; border-radius: 9px; }
+      .bottom-bezel { padding: 5px; border-radius: 7px; }
+      .hinge { flex-basis: 5px; width: min(100%, 760px); }
+      .controls { width: min(100%, 760px); gap: clamp(8px, 1.8vw, 22px); }
+      .pad button, .actions button {
+        background: linear-gradient(145deg,
+          color-mix(in srgb, var(--ds-shell-color), white 18%),
+          color-mix(in srgb, var(--ds-shell-color), #8c98a5 24%));
+        border-color: color-mix(in srgb, var(--ds-shell-color), #5e6a78 34%);
+        color: var(--button-ink, #202630);
+        box-shadow: inset 0 1px 2px #ffffff99, 0 3px 0 color-mix(in srgb, var(--ds-shell-color), #66717e 38%), 0 4px 7px #26344830;
+        text-shadow: none;
+      }
+      .pad-center {
+        background: linear-gradient(145deg,
+          color-mix(in srgb, var(--ds-shell-color), white 18%),
+          color-mix(in srgb, var(--ds-shell-color), #8c98a5 24%));
+      }
+      .actions button:nth-child(1), .actions button:nth-child(2),
+      .actions button:nth-child(3), .actions button:nth-child(4) { color: var(--button-ink, #202630); }
+      .pad button:active, .actions button:active {
+        background: color-mix(in srgb, var(--ds-shell-color), #6d7886 24%);
+      }
+      @media (max-height: 760px) {
+        .app { padding-top: 3px; padding-bottom: 3px; gap: 3px; }
+        .masthead { padding-bottom: 2px; }
+        .game-stage { padding-top: 4px; padding-bottom: 4px; }
+      }
+
+      .system-buttons {
+        display: flex;
+        flex: 0 0 auto;
+        flex-direction: column;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .system-buttons button {
+        min-width: 60px;
+        min-height: 28px;
+        padding: 3px 6px;
+        border: 1px solid var(--ds-trim-color);
+        border-radius: 12px;
+        background: linear-gradient(145deg, #fff, #d6dce2);
+        box-shadow: inset 0 1px 2px #fff, 0 2px 0 var(--ds-trim-color);
+        color: #293747;
+        font: bold 9px "Pokemon DS", "Trebuchet MS", Arial, sans-serif;
+        touch-action: none;
+        user-select: none;
+      }
+
+      @media (max-height: 650px) {
+        .app {
+          height: auto;
+          min-height: 100dvh;
+        }
+
+        .game-stage {
+          flex: 0 0 540px;
+        }
+
+        .controls {
+          min-height: 68px;
+        }
+
+        .pad {
+          width: 68px;
+          height: 68px;
+          grid-template:
+            ". up ." 22px
+            "left center right" 22px
+            ". down ." 22px
+            / 22px 22px 22px;
+        }
+
+        .pad button,
+        .pad-center {
+          width: 22px;
+          height: 22px;
+        }
+
+        .actions {
+          height: 68px;
+        }
+
+        .actions button {
+          width: 34px;
+          min-width: 34px;
+          height: 34px;
+          min-height: 34px;
+        }
+
+        .speaker-grille {
+          height: 38px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="masthead">
+        <h1 class="brand">POCKETMALS</h1>
+        <label class="shell-picker" for="shell-color">DS color
+          <input id="shell-color" type="color" value="#f6f7f4" aria-label="Choose DS shell color">
+        </label>
+      </header>
+
+      <section class="game-stage" aria-label="Mellora">
+        <span class="lens" aria-hidden="true"></span>
+        <div class="top-bezel">
+          <canvas id="c" width="320" height="240" aria-label="Mellora top screen">
+            Your browser does not support the canvas needed to play Mellora.
+          </canvas>
+        </div>
+        <div class="hinge" aria-hidden="true"></div>
+        <div class="bottom-bezel">
+          <canvas id="lower-screen" width="320" height="240" aria-label="Mellora map and party screen"></canvas>
+        </div>
+        <nav class="controls" aria-label="Game controls">
+          <p class="help">
+            <strong>Move</strong> Arrows / WDS<br>
+            <strong>A/B/X/Y</strong> keyboard keys<br>
+            <strong>Start</strong> Enter &nbsp; <strong>Select</strong> Backspace
+          </p>
+          <div class="pad" id="pad" aria-label="Directional controls">
+            <button type="button" data-k="up" aria-label="Move up">▲</button>
+            <button type="button" data-k="left" aria-label="Move left">◀</button>
+            <button type="button" data-k="down" aria-label="Move down">▼</button>
+            <button type="button" data-k="right" aria-label="Move right">▶</button>
+            <span class="pad-center" aria-hidden="true"></span>
+          </div>
+          <div class="speaker-grille" aria-hidden="true"></div>
+          <div class="system-buttons" aria-label="Start and Select buttons">
+            <button type="button" data-k="start" aria-label="Start button">START</button>
+            <button type="button" data-k="select" aria-label="Select button">SELECT</button>
+          </div>
+          <div class="actions" aria-label="Action buttons">
+            <button type="button" data-k="a" aria-label="A button">A</button>
+            <button type="button" data-k="b" aria-label="B button">B</button>
+            <button type="button" data-k="x" aria-label="X button">X</button>
+            <button type="button" data-k="y" aria-label="Y button">Y</button>
+          </div>
+        </nav>
+        <form class="nickname-card" id="trainer-form" hidden>
+          <label for="trainer-input">What should we call you?</label>
+          <input id="trainer-input" name="trainer" maxlength="12" autocomplete="off" placeholder="Trainer name" required>
+          <div class="nickname-actions">
+            <button type="submit">Start adventure</button>
+          </div>
+        </form>
+        <form class="nickname-card" id="nickname-form" hidden>
+          <label for="nickname-input">Choose a nickname (up to 12 characters)</label>
+          <input id="nickname-input" name="nickname" maxlength="12" autocomplete="off" placeholder="Pocketmal name">
+          <div class="nickname-actions">
+            <button type="button" id="nickname-skip">Keep species name</button>
+            <button type="submit">Give nickname</button>
+          </div>
+        </form>
+      </section>
+
+      <footer class="footer">
+        <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true">Music: On</button>
+        <span>Move: arrows / W-S-D &nbsp; A/B/X/Y act &nbsp; Enter: Start &nbsp; Backspace: Select</span>
+      </footer>
+    </main>
+    <script src="./rosebud-game-defaults.js" defer></script>
+    <script type="module" src="./main.js"></script>
+    <input id="save-import" type="file" accept="application/json,.json,.txt" hidden>
+  </body>
+</html>
