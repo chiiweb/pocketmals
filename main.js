@@ -188,6 +188,14 @@ const music = {
   },
 };
 
+// Original destination themes: each area has its own melody, harmony and rhythm.
+music.covo = { tempo:0.188, lead:[392,494,587,659,587,494,440,392,440,494,587,784,659,587,494,440], harmony:[196,0,247,0,294,0,262,0,220,0,247,0,330,0,294,0], bass:[98,98,123,123,110,110,147,147], arp:[392,494,587,659,587,494,440,494,392,494,587,784,659,587,494,392], drums:['kick',null,null,'hat','snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null], summer:[0,587,0,659,0,784,0,659,0,587,0,494,0,587,0,659] };
+music.route1 = { tempo:0.142, lead:[587,659,784,880,784,659,587,494,523,587,659,784,880,784,659,587], harmony:[294,0,330,0,392,0,440,0,262,0,294,0,349,0,392,0], bass:[147,147,165,165,131,131,175,175], arp:[587,659,784,880,784,659,587,659,523,587,698,784,880,784,698,587], drums:['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat',null], summer:[0,784,0,880,0,988,0,880,0,784,0,659,0,784,0,880] };
+music.solara = { tempo:0.162, lead:[698,784,880,1047,988,880,784,698,659,784,880,988,1175,1047,880,784], harmony:[349,0,392,0,440,0,523,0,330,0,392,0,494,0,440,0], bass:[175,175,196,196,165,165,220,220], arp:[698,784,880,1047,880,784,698,784,659,784,988,1175,1047,988,880,784], drums:['kick',null,'hat','hat','snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat','hat'], summer:[0,880,0,1047,0,1175,0,1047,0,988,0,880,0,988,0,1047] };
+music.ombra = { tempo:0.205, lead:[330,392,440,523,494,440,392,330,294,330,392,440,523,494,392,349], harmony:[165,0,196,0,220,0,262,0,147,0,165,0,196,0,220,0], bass:[82,82,98,98,110,110,73,73], arp:[330,392,440,523,440,392,330,392,294,349,392,440,523,440,392,330], drums:[null,null,'hat',null,null,'hat',null,null,'kick',null,null,'hat',null,null,'hat',null], summer:[0,523,0,587,0,659,0,587,0,523,0,440,0,494,0,523] };
+music.altoRidge = { tempo:0.176, lead:[494,587,698,784,880,784,698,587,523,587,698,880,988,880,784,698], harmony:[247,0,294,0,349,0,392,0,262,0,294,0,349,0,440,0], bass:[123,123,147,147,131,131,175,175], arp:[494,587,698,880,784,698,587,698,523,587,698,880,988,880,784,698], drums:['kick',null,null,'hat',null,null,'snare',null,'kick',null,'hat',null,null,'hat','snare',null], summer:[0,784,0,880,0,988,0,1175,0,988,0,880,0,784,0,698] };
+music.league = { tempo:0.128, lead:[587,784,880,1175,1047,988,880,784,698,880,988,1319,1175,1047,988,880], harmony:[294,0,392,0,440,0,587,0,349,0,440,0,523,0,494,0], bass:[147,147,196,196,175,175,220,220], arp:[587,784,880,1175,1047,880,784,880,698,880,988,1319,1175,1047,988,880], drums:['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare','hat','snare',null], summer:[0,988,0,1175,0,1319,0,1568,0,1319,0,1175,0,1047,0,988] };
+
 function beep(freq, dur = 0.08, type = 'square', vol = 0.04, when = actx && actx.currentTime) {
   if (!actx || !gameSettings.soundEffects || !freq) return;
   const o = actx.createOscillator(), g = actx.createGain();
@@ -446,13 +454,15 @@ window.PocketmalsAudio = {
 function updateMusic() {
   if (!actx || muted) return;
 
+  const areaTracks = {
+    pocketown: 'covo', route1: 'route1', sunmeadow: 'solara',
+    whisperwood: 'ombra', starlit: 'altoRidge', league: 'league',
+  };
+  const roomTrack = S?.room?.type?.startsWith('gym') ? 'gym' : S?.room?.type;
   const track = mode === 'battle' ? 'battle'
     : mode === 'title' || mode === 'select' || mode === 'opening' ? 'title'
-      : S && S.room ? S.room.type
-        : S?.map === 'whisperwood' || S?.map === 'starlit' ? 'forest'
-          : S?.map === 'route1' || S?.map === 'sunmeadow' ? 'route'
-            : S?.map === 'league' ? 'gym'
-              : 'world';
+      : S && S.room ? roomTrack
+        : areaTracks[S?.map] || 'world';
 
   if (track !== musicTrack) {
     musicTrack = track;
@@ -485,6 +495,12 @@ function updateMusic() {
       center: [0, 7, 5, 3, 0, 2, 5, 7],
       gym:    [0, 5, 7, 2, 0, 3, 5, 7],
       battle: [0, 3, 5, 7, 0, 5, 2, 7],
+      covo: [0, 5, 3, 7, 0, 2, 5, 3],
+      route1: [0, 5, 2, 7, 3, 0, 5, 2],
+      solara: [0, 3, 5, 2, 0, 5, 7, 3],
+      ombra: [0, 3, 7, 2, 0, 5, 3, 7],
+      altoRidge: [0, 5, 2, 7, 3, 5, 0, 2],
+      league: [0, 5, 7, 3, 0, 2, 5, 7],
     };
     const shift = (progressions[track] || progressions.world)[phrase];
     const semitone = (freq, amount = 0) => freq ? freq * Math.pow(2, amount / 12) : 0;
