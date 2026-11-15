@@ -4024,9 +4024,12 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
         : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    // 48x72 assets are drawn at exactly 16x24 logical pixels (3:1) so
-    // the one-pixel DS palette details stay sharp instead of being blurred.
-    ctx.drawImage(pixelSprite, px - 4, py - 8 + bob, 16, 24);
+    // Assets may be one 48x72 pose or a two-frame 96x72 idle/walk strip.
+    // Both are sampled at native pixel scale with nearest-neighbour rendering.
+    const sourceFrame = pixelSprite.naturalWidth >= 96 && walkingSprite ? Math.floor(frame / 6) % 2 : 0;
+    const sourceWidth = pixelSprite.naturalWidth >= 96 ? 48 : pixelSprite.naturalWidth;
+    const sourceHeight = Math.min(72, pixelSprite.naturalHeight);
+    ctx.drawImage(pixelSprite, sourceFrame * 48, 0, sourceWidth, sourceHeight, px - 4, py - 8 + bob, 16, 24);
     ctx.restore();
     return;
   }
