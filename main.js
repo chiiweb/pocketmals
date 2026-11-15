@@ -451,7 +451,8 @@ function updateMusic() {
       : S && S.room ? S.room.type
         : S?.map === 'whisperwood' || S?.map === 'starlit' ? 'forest'
           : S?.map === 'route1' || S?.map === 'sunmeadow' ? 'route'
-            : 'world';
+            : S?.map === 'league' ? 'gym'
+              : 'world';
 
   if (track !== musicTrack) {
     musicTrack = track;
@@ -1768,6 +1769,13 @@ const NPCS = {
     { x: 7, y: 5, c: '#2a3550', trainer: 'Team Meridian Grunt Vale', team: [['Gearbit', 9], ['Mothcinder', 10]], money: 720, meridian: true },
     { x: 9, y: 2, c: '#1a2035', trainer: 'Team Meridian Admin Vex', team: [['Gearbit', 11], ['Tuskvolt', 12], ['Latticebot', 13]], money: 2200, boss: true, meridian: true },
   ],
+  league: [
+    { x: 4, y: 3, c: '#b48a50', trainer: 'Elite Four Aster', eliteFour: 1, money: 3200, intro: ['Aster: I specialise in precision and resolve.', 'Every turn matters. Show me how well you know your partners.'], team: [['Gearbit',24],['Sparkit',24],['Voltuff',25],['Latticebot',26]], victory: ['Aster: A clean victory. You read every opening.', 'One member of the Elite Four has been defeated.'] },
+    { x: 15, y: 3, c: '#5b9eb5', trainer: 'Elite Four Brin', eliteFour: 2, money: 3200, intro: ['Brin: The strongest current is the one that keeps moving.', 'Let us see whether your team can adapt.'], team: [['Ripfin',24],['Glacub',25],['Foamish',26],['Marinox',27]], victory: ['Brin: You never lost your rhythm. Well done.', 'Two members of the Elite Four have been defeated.'] },
+    { x: 4, y: 9, c: '#79a85d', trainer: 'Elite Four Solene', eliteFour: 3, money: 3200, intro: ['Solene: Growth takes patience, care, and a strong foundation.', 'Show me the strength of your bond.'], team: [['Grainper',24],['Brackibud',25],['Wheafield',26],['Florion',28]], victory: ['Solene: Your partners trust you. That is a strength no machine can copy.', 'Three members of the Elite Four have been defeated.'] },
+    { x: 15, y: 9, c: '#786b9e', trainer: 'Elite Four Orin', eliteFour: 4, money: 3200, intro: ['Orin: The quietest opponent can be the hardest to read.', 'Keep your focus when the battle turns strange.'], team: [['Wispurr',25],['Hauntide',26],['Duskrowl',27],['Starfox',29]], victory: ['Orin: You faced the unknown without turning away.', 'The entire Elite Four has been defeated. The Champion is ready.'] },
+    { x: 10, y: 11, c: '#d6b15d', trainer: 'Champion Kael', champion: true, money: 6000, intro: ['Kael: So you crossed Alto Ridge and defeated the Elite Four.', 'I am Kael, Champion of Mellora. This final battle is about the journey you built with your partners.', 'Let us give them a battle worth remembering.'], team: [['Tuskvolt',29],['Cragmite',29],['Pyrewing',30],['Jelluburst',31],['Rockage',31],['Drakindle',32]] },
+  ],
 };
 
 function newGame(gender, name) {
@@ -1883,6 +1891,9 @@ function loadFromObject(loaded) {
   }
   if (!['up', 'down', 'left', 'right'].includes(S.dir)) S.dir = 'down';
   S.flags = S.flags && typeof S.flags === 'object' ? S.flags : {};
+  S.flags.eliteFourWins = Array.isArray(S.flags.eliteFourWins)
+    ? [...new Set(S.flags.eliteFourWins.filter((member) => [1, 2, 3, 4].includes(member)))]
+    : [];
   // Remap legacy species names from older Pocketmals builds.
   const remapMal = (m) => {
     if (!m || !m.name) return m;
@@ -2073,6 +2084,9 @@ function tryMove(dir) {
     if (S.map === 'whisperwood' && !S.badges.includes('Grove Badge')) {
       return say('A soft starlight seals the ridge path. Earn the Grove Badge to pass.');
     }
+    if (S.map === 'starlit' && !['Meadow Badge', 'Tide Badge', 'Grove Badge'].every((badge) => S.badges.includes(badge))) {
+      return say('The Alto League gates recognise only trainers who have earned all three Mellora Gym badges.');
+    }
     return changeMap(ex.up[0], S.map === 'sunmeadow' ? 14 : S.x, 13);
   }
   if (ny > 14 && ex.down) return changeMap(ex.down[0], S.x, 1);
@@ -2159,7 +2173,7 @@ function drawAreaTitleCard() {
   ctx.textAlign = 'left';
   ctx.fillStyle = '#5a6f78';
   ctx.font = 'bold 6px "Pokemon DS", Arial, sans-serif';
-  ctx.fillText('LUNARO REGION', x + 24, y + 66);
+  ctx.fillText('MELLORA REGION', x + 24, y + 66);
   ctx.fillStyle = '#9eafae';
   ctx.fillRect(x + 110, y + 63, 190, 1);
   ctx.restore();
@@ -2397,8 +2411,13 @@ async function talk(n) {
   if (n.trainer) {
     const key = S.map + n.x + n.y;
     if (S.beaten[key]) return say(`${n.trainer}: Well battled. Maybe we'll meet again on another route.`);
+    const eliteWins = Array.isArray(S.flags.eliteFourWins) ? S.flags.eliteFourWins : [];
+    if (n.eliteFour > 1 && !eliteWins.includes(n.eliteFour - 1)) return say(`${n.trainer}: The previous Elite Four member must be defeated before I can accept your challenge.`);
+    if (n.champion && eliteWins.length < 4) return say('Champion Kael: Defeat all four members of the Elite Four before challenging me.');
 
-    if (n.boss) {
+    if (n.champion || n.eliteFour) {
+      await sayAll(n.intro || []);
+    } else if (n.boss) {
       await sayAll([
         'Admin Vex: So the professor sent children to interfere.',
         'Admin Vex: Team Meridian does not steal Wishbits for toys. We realign the meridian.',
@@ -2420,6 +2439,25 @@ async function talk(n) {
 
     if (won) {
       S.beaten[key] = true;
+      if (n.eliteFour) {
+        const wins = new Set(Array.isArray(S.flags.eliteFourWins) ? S.flags.eliteFourWins : []);
+        wins.add(n.eliteFour);
+        S.flags.eliteFourWins = [...wins].sort((a, b) => a - b);
+        await sayAll(n.victory || []);
+      }
+      if (n.champion) {
+        S.flags.leagueChampionDefeated = true;
+        S.flags.melloraChampionSeen = true;
+        S.bag['Champion Crest'] = 1;
+        await sayAll([
+          'Kael: You did it. Mellora has a new Champion.',
+          'Your partners stood with you through every route, every Gym, and every challenge.',
+          'Professor Lotus (via radio): Your fieldwork has become part of Mellora history. I could not be prouder.',
+          'Tessa: Champion! I knew you and your partners could do it. Our next journey starts whenever you are ready.',
+          'CHAMPION OF MELLORA',
+          'You received the CHAMPION CREST. Your victory is saved.'
+        ]);
+      }
       save();
       if (n.boss) {
         S.flags.chapter1 = true;
@@ -2849,7 +2887,7 @@ function drawGameMenu(g) {
   }
   const titles = {
     bag: 'BAG', party: 'YOUR PARTNER', dex: 'MALDEX / FIELD JOURNAL',
-    trainer: 'TRAINER CARD', options: 'OPTIONS', box: 'MALBOX / STORAGE', map: 'LUNARO REGION',
+    trainer: 'TRAINER CARD', options: 'OPTIONS', box: 'MALBOX / STORAGE', map: 'MELLORA REGION',
     saved: 'GAME SAVED',
   };
   menuFrame(g, titles[page] || 'MENU');
@@ -3073,25 +3111,21 @@ function drawGameMenu(g) {
   }
   if (page === 'map') {
     const maps = Object.entries(MAPS);
+    const positions = [[72, 48], [72, 91], [160, 91], [244, 48], [244, 137], [160, 171]];
     g.strokeStyle = '#5d91a0';
-    g.lineWidth = 5;
+    g.lineWidth = 4;
     g.beginPath();
-    g.moveTo(72, 68);
-    g.lineTo(72, 120);
-    g.lineTo(171, 120);
-    g.lineTo(244, 74);
+    g.moveTo(72, 58); g.lineTo(72, 91); g.lineTo(160, 91); g.lineTo(244, 48); g.lineTo(244, 137);
     g.stroke();
     maps.forEach(([id, map], index) => {
-      const x = [72, 72, 171, 244][index], y = [58, 108, 108, 62][index];
+      const [x, y] = positions[index] || [160, 171];
       g.fillStyle = S.map === id ? '#f1d66b' : '#79c7ac';
-      g.beginPath();
-      g.arc(x, y, 8, 0, Math.PI * 2);
-      g.fill();
-      menuLabel(g, map.name.slice(0, 14).toUpperCase(), x - 29, y + 23, '#dcebf0', 7);
+      g.beginPath(); g.arc(x, y, 7, 0, Math.PI * 2); g.fill();
+      menuLabel(g, map.name.slice(0, 12).toUpperCase(), Math.max(4, Math.min(252, x - 29)), y + 18, '#dcebf0', 6);
     });
-    menuLabel(g, `NOW EXPLORING ${MAPS[S.map].name.toUpperCase()}`, 45, 173, '#fff2bc', 9);
-    menuLabel(g, `WISHBITS  ${S.wishbits.length} / 3   BADGES  ${S.badges.length} / 3`, 34, 194, '#b7d8e8', 8);
-    menuLabel(g, 'B BACK', 18, 220, '#9bbbd1', 8);
+    menuLabel(g, `NOW EXPLORING ${MAPS[S.map].name.toUpperCase()}`, 45, 190, '#fff2bc', 9);
+    menuLabel(g, `BADGES ${S.badges.length}/3  ELITE ${(S.flags.eliteFourWins || []).length}/4`, 62, 207, '#b7d8e8', 8);
+    menuLabel(g, S.flags.leagueChampionDefeated ? 'MELLORA CHAMPION' : 'B BACK', 18, 226, '#9bbbd1', 8);
     return;
   }
   menuLabel(g, 'Your journey has been saved.', 54, 100, '#fff2bc', 11);
@@ -3189,7 +3223,7 @@ function handleMenuTap(event) {
 lowerCanvas.addEventListener('click', handleMenuTap);
 async function regionMap() {
   await sayAll([
-    'LUNARO REGION',
+    'MELLORA REGION',
     'Covo Town — home, the Lab, and the first Gym.',
     'Route 1 leads north to Solara City, then Ombra Woods.',
     S.badges.includes('Grove Badge')
@@ -4700,7 +4734,7 @@ function drawIntroRoom() {
     ctx.fillStyle = '#f9f0d8'; ctx.fillRect(x + Math.floor(w / 2) - 2, y, 4, h);
     ctx.fillRect(x, y + Math.floor(h / 2), w, 3);
   };
-  const introHeader = (left, right = 'LUNARO REGION') => {
+  const introHeader = (left, right = 'MELLORA REGION') => {
     ctx.fillStyle = '#20384c'; ctx.fillRect(5, 5, 310, 17);
     text(left, 11, 17, '#fff0c5', 8);
     text(right, 220, 17, '#c9e4e1', 6);
