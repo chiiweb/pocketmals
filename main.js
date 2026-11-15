@@ -1563,39 +1563,69 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     }
     px(5, 21, 4, 2, ink); px(14, 21, 4, 2, ink);
   } else if (name === 'Lovlittle') {
-    poly([[5,13],[2,9],[3,6],[7,8],[10,12]], ink);
-    poly([[19,13],[22,9],[21,6],[17,8],[14,12]], ink);
-    poly([[6,14],[4,10],[7,11],[9,14]], light, null);
-    poly([[18,14],[20,10],[17,11],[15,14]], accent, null);
-    oval(12, 14, 7, 7, ink); oval(12, 14, 6, 6, base, null);
-    poly([[7,10],[6,7],[9,8],[10,5],[12,8],[15,5],[16,9],[19,8],[17,12]], light, ink);
-    poly([[9,16],[11,14],[12,16],[13,14],[16,16],[15,19],[12,21],[9,19]], accent, ink);
+    // Lovlittle: soft, rounded fairy silhouette with long petal-like ears
+    // and a prominent heart-shaped chest ruff.
+    poly([[5,14],[2,10],[2,6],[5,7],[9,11],[10,14]], ink);
+    poly([[19,14],[22,10],[22,6],[19,7],[15,11],[14,14]], ink);
+    poly([[4,9],[4,7],[6,9],[8,12],[6,11]], light, null);
+    poly([[20,9],[20,7],[18,9],[16,12],[18,11]], light, null);
+    // round head and compact body
+    oval(12, 13, 7, 6, ink);
+    oval(12, 13, 6, 5, base, null);
+    poly([[7,10],[6,7],[9,8],[10,5],[12,8],[14,5],[15,8],[18,7],[17,11]], ink);
+    poly([[8,9],[8,8],[10,8],[11,6],[12,9],[14,6],[15,9],[17,8],[16,10]], light, null);
+    // layered heart ruff: broad lobes and a pointed lower tip
+    poly([[6,15],[8,14],[11,15],[12,17],[13,15],[16,14],[18,16],[17,19],[12,23],[7,19]], ink);
+    poly([[7,16],[9,15],[11,16],[12,18],[13,16],[15,15],[17,16],[16,19],[12,22],[8,19]], accent, null);
+    px(9, 16, 2, 1, light); px(13, 16, 2, 1, light);
     if (view !== 'back') {
-      eye(9, 12, '#69465f'); eye(14, 12, '#69465f');
-      px(11, 15, 2, 1, ink);
+      eye(9, 11, '#69465f'); eye(14, 11, '#69465f');
+      px(11, 14, 2, 1, ink);
+      px(8, 13, 1, 1, '#f3a8c5'); px(15, 13, 1, 1, '#f3a8c5');
     } else {
-      poly([[8,11],[16,11],[17,17],[12,21],[7,17]], accent, ink);
-      px(10, 12, 4, 4, light);
+      // visible back-of-head marking and the full heart ruff from behind
+      poly([[8,10],[16,10],[18,15],[12,19],[6,15]], light, ink);
+      px(10, 11, 4, 3, base);
+      poly([[7,16],[11,16],[12,18],[13,16],[17,16],[16,19],[12,22],[8,19]], accent, ink);
+    }
+    px(7, 20, 3, 2, ink); px(14, 20, 3, 2, ink);
+    px(8, 20, 2, 1, light); px(14, 20, 2, 1, light);
+    sparkle(19, 4, '#fff6cf');
+    sparkle(4, 15, '#fff6cf');
+  } else if (name === 'Malittle') {
+    // Malittle: compact shadow-spirit body, jagged ghost crown,
+    // wispy side-flames and a clearly readable glowing chest jewel.
+    poly([[7,14],[4,16],[2,20],[4,22],[8,19],[9,16]], ink);
+    poly([[17,14],[20,16],[22,20],[20,22],[16,19],[15,16]], ink);
+    poly([[4,19],[6,17],[7,18],[5,21]], base, null);
+    poly([[20,19],[18,17],[17,18],[19,21]], base, null);
+    // crown silhouette
+    poly([[5,14],[3,10],[6,10],[4,5],[9,8],[12,2],[14,7],[19,4],[17,9],[21,8],[18,13],[17,17],[7,17]], ink);
+    poly([[7,13],[6,10],[8,10],[7,7],[10,9],[12,5],[14,9],[18,7],[16,11],[19,10],[16,15],[8,15]], base, null);
+    // violet shadow ridges and translucent-looking wisps
+    poly([[6,11],[5,7],[9,9],[10,11]], accent, ink);
+    poly([[15,10],[19,6],[18,11],[16,12]], light, ink);
+    poly([[7,15],[4,17],[5,19],[8,17]], accent, null);
+    poly([[17,15],[20,17],[19,19],[16,17]], accent, null);
+    if (view !== 'back') {
+      px(8, 11, 3, 1, '#f5e8ff'); px(14, 11, 3, 1, '#f5e8ff');
+      px(9, 11, 1, 1, '#bda8ed'); px(15, 11, 1, 1, '#bda8ed');
+      // luminous chest gem, framed by darker pixels for contrast
+      poly([[9,14],[12,12],[15,14],[14,18],[12,20],[10,18]], ink);
+      poly([[10,14],[12,13],[14,14],[13,17],[12,18],[11,17]], '#f0d7b6', null);
+      px(11, 14, 1, 1, '#fff8df'); px(12, 15, 1, 1, '#fff8df');
+    } else {
+      poly([[8,9],[16,9],[18,15],[15,19],[12,21],[9,19],[6,15]], ink);
+      poly([[9,10],[15,10],[17,15],[14,18],[12,19],[10,18],[7,15]], accent, null);
+      poly([[10,13],[12,12],[14,13],[13,16],[12,17],[11,16]], '#b4a0d4', ink);
+      px(11, 13, 1, 1, '#fff8df');
+      // back wisps remain visible from either battle orientation
+      poly([[7,15],[4,17],[5,20],[8,18]], light, null);
+      poly([[17,15],[20,17],[19,20],[16,18]], light, null);
     }
     px(8, 20, 3, 2, ink); px(14, 20, 3, 2, ink);
-    sparkle(19, 5, '#fff6cf');
-  } else if (name === 'Malittle') {
-    poly([[6,14],[2,18],[3,22],[7,19]], ink);
-    poly([[18,14],[22,18],[21,22],[17,19]], ink);
-    poly([[5,13],[3,9],[6,9],[4,5],[9,7],[12,3],[14,7],[19,4],[17,9],[21,8],[18,13],[16,17],[8,17]], ink);
-    poly([[7,12],[6,9],[9,9],[11,6],[13,9],[17,7],[16,11],[18,11],[15,15],[9,15]], base, null);
-    poly([[8,10],[6,6],[10,8]], accent, ink);
-    poly([[15,9],[19,5],[18,10]], light, ink);
-    poly([[10,15],[12,13],[15,15],[14,18],[11,18]], accent, ink);
-    if (view !== 'back') {
-      px(8, 11, 3, 1, light); px(14, 11, 3, 1, light);
-      px(11, 14, 3, 1, ink);
-    } else {
-      poly([[8,9],[16,9],[18,15],[12,19],[7,15]], accent, ink);
-      px(10, 10, 4, 4, light);
-    }
-    sparkle(12, 15, '#f4e3b2');
-  }
+    sparkle(12, 4, '#f4e3b2');
+    sparkle(20, 13, '#c8b5f0');
 
   // Rear-facing battle sprite markings: a readable shoulder/back silhouette, not a mirrored face.
   if (view === 'back') {
@@ -2243,7 +2273,7 @@ async function claimWishbitGift() {
   S.flags.wishbitGift = name;
   save();
   const gift = makeMal(name, 10, Math.random() < 1 / pocketmalShinyOdds());
-  await addMal(gift, { askNickname: false });
+  await addMal(gift);
   save();
   await sayAll([
     `Professor Lotus: ${name} is your gift. I'll record what we learned from the stones.`,
