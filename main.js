@@ -188,6 +188,15 @@ const music = {
   },
 };
 
+// Original destination themes: each area has its own melody, harmony and rhythm.
+music.covo = { tempo:0.188, lead:[392,494,587,659,587,494,440,392,440,494,587,784,659,587,494,440], harmony:[196,0,247,0,294,0,262,0,220,0,247,0,330,0,294,0], bass:[98,98,123,123,110,110,147,147], arp:[392,494,587,659,587,494,440,494,392,494,587,784,659,587,494,392], drums:['kick',null,null,'hat','snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null], summer:[0,587,0,659,0,784,0,659,0,587,0,494,0,587,0,659] };
+music.route1 = { tempo:0.142, lead:[587,659,784,880,784,659,587,494,523,587,659,784,880,784,659,587], harmony:[294,0,330,0,392,0,440,0,262,0,294,0,349,0,392,0], bass:[147,147,165,165,131,131,175,175], arp:[587,659,784,880,784,659,587,659,523,587,698,784,880,784,698,587], drums:['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat',null], summer:[0,784,0,880,0,988,0,880,0,784,0,659,0,784,0,880] };
+music.solara = { tempo:0.162, lead:[698,784,880,1047,988,880,784,698,659,784,880,988,1175,1047,880,784], harmony:[349,0,392,0,440,0,523,0,330,0,392,0,494,0,440,0], bass:[175,175,196,196,165,165,220,220], arp:[698,784,880,1047,880,784,698,784,659,784,988,1175,1047,988,880,784], drums:['kick',null,'hat','hat','snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat','hat'], summer:[0,880,0,1047,0,1175,0,1047,0,988,0,880,0,988,0,1047] };
+music.ombra = { tempo:0.205, lead:[330,392,440,523,494,440,392,330,294,330,392,440,523,494,392,349], harmony:[165,0,196,0,220,0,262,0,147,0,165,0,196,0,220,0], bass:[82,82,98,98,110,110,73,73], arp:[330,392,440,523,440,392,330,392,294,349,392,440,523,440,392,330], drums:[null,null,'hat',null,null,'hat',null,null,'kick',null,null,'hat',null,null,'hat',null], summer:[0,523,0,587,0,659,0,587,0,523,0,440,0,494,0,523] };
+music.altoRidge = { tempo:0.176, lead:[494,587,698,784,880,784,698,587,523,587,698,880,988,880,784,698], harmony:[247,0,294,0,349,0,392,0,262,0,294,0,349,0,440,0], bass:[123,123,147,147,131,131,175,175], arp:[494,587,698,880,784,698,587,698,523,587,698,880,988,880,784,698], drums:['kick',null,null,'hat',null,null,'snare',null,'kick',null,'hat',null,null,'hat','snare',null], summer:[0,784,0,880,0,988,0,1175,0,988,0,880,0,784,0,698] };
+music.opening = { tempo:0.235, lead:[392,494,587,784,698,587,494,392,440,523,659,784,880,784,659,523], harmony:[196,0,247,0,294,0,392,0,220,0,262,0,330,0,440,0], bass:[98,98,73,73,110,110,82,82], arp:[392,494,587,784,698,587,494,587,440,523,659,880,784,659,523,440], drums:[null,null,null,null,'hat',null,null,null,'kick',null,null,null,'snare',null,null,null], summer:[0,0,587,0,0,659,0,784,0,0,698,0,0,784,0,880] };
+music.league = { tempo:0.128, lead:[587,784,880,1175,1047,988,880,784,698,880,988,1319,1175,1047,988,880], harmony:[294,0,392,0,440,0,587,0,349,0,440,0,523,0,494,0], bass:[147,147,196,196,175,175,220,220], arp:[587,784,880,1175,1047,880,784,880,698,880,988,1319,1175,1047,988,880], drums:['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare','hat','snare',null], summer:[0,988,0,1175,0,1319,0,1568,0,1319,0,1175,0,1047,0,988] };
+
 function beep(freq, dur = 0.08, type = 'square', vol = 0.04, when = actx && actx.currentTime) {
   if (!actx || !gameSettings.soundEffects || !freq) return;
   const o = actx.createOscillator(), g = actx.createGain();
@@ -446,12 +455,16 @@ window.PocketmalsAudio = {
 function updateMusic() {
   if (!actx || muted) return;
 
+  const areaTracks = {
+    pocketown: 'covo', route1: 'route1', sunmeadow: 'solara',
+    whisperwood: 'ombra', starlit: 'altoRidge', league: 'league',
+  };
+  const roomTrack = S?.room?.type?.startsWith('gym') ? 'gym' : S?.room?.type;
   const track = mode === 'battle' ? 'battle'
-    : mode === 'title' || mode === 'select' || mode === 'opening' ? 'title'
-      : S && S.room ? S.room.type
-        : S?.map === 'whisperwood' || S?.map === 'starlit' ? 'forest'
-          : S?.map === 'route1' || S?.map === 'sunmeadow' ? 'route'
-            : 'world';
+    : mode === 'opening' ? 'opening'
+    : mode === 'title' || mode === 'select' ? 'title'
+      : S && S.room ? roomTrack
+        : areaTracks[S?.map] || 'world';
 
   if (track !== musicTrack) {
     musicTrack = track;
@@ -476,6 +489,7 @@ function updateMusic() {
     const phrase = Math.floor(musicStep / 16) % 8;
     const phraseStyle = phrase % 4; // A / A' / bridge / turnaround
     const progressions = {
+      opening:[0, 5, 3, 7, 0, 2, 5, 7],
       title:  [0, 5, 7, 2, 0, 3, 5, 7],
       world:  [0, 5, 2, 7, 3, 0, 5, 7],
       route:  [0, 5, 2, 7, 3, 0, 5, 2],
@@ -484,8 +498,16 @@ function updateMusic() {
       center: [0, 7, 5, 3, 0, 2, 5, 7],
       gym:    [0, 5, 7, 2, 0, 3, 5, 7],
       battle: [0, 3, 5, 7, 0, 5, 2, 7],
+      covo: [0, 5, 3, 7, 0, 2, 5, 3],
+      route1: [0, 5, 2, 7, 3, 0, 5, 2],
+      solara: [0, 3, 5, 2, 0, 5, 7, 3],
+      ombra: [0, 3, 7, 2, 0, 5, 3, 7],
+      altoRidge: [0, 5, 2, 7, 3, 5, 0, 2],
+      league: [0, 5, 7, 3, 0, 2, 5, 7],
     };
     const shift = (progressions[track] || progressions.world)[phrase];
+    // The B section breathes; the turnaround builds back into the next phrase.
+    const phraseMix = phraseStyle === 2 ? 0.68 : phraseStyle === 3 ? 1.16 : phraseStyle === 1 ? 0.92 : 1;
     const semitone = (freq, amount = 0) => freq ? freq * Math.pow(2, amount / 12) : 0;
     let lead = song.lead[step];
     let harmony = song.harmony[step];
@@ -509,23 +531,23 @@ function updateMusic() {
     arp = semitone(arp, shift);
 
     if (musicLayers.melody && lead) {
-      playMusicTone(lead, song.tempo * 0.76, 'square', 0.016, nextMusicNote);
+      playMusicTone(lead, song.tempo * 0.76, 'square', 0.016 * phraseMix, nextMusicNote);
     }
     if (musicLayers.harmony && harmony) {
-      playMusicTone(harmony, song.tempo * 1.35, 'triangle', 0.008, nextMusicNote);
+      playMusicTone(harmony, song.tempo * 1.35, 'triangle', 0.008 * phraseMix, nextMusicNote);
     }
     if (musicLayers.bass && bass && step % 2 === 0) {
-      playMusicTone(bass, song.tempo * 1.8, 'triangle', 0.024, nextMusicNote);
+      playMusicTone(bass, song.tempo * 1.8, 'triangle', phraseStyle === 2 ? 0.015 : phraseStyle === 3 ? 0.03 : 0.024, nextMusicNote);
     }
     if (musicLayers.arpeggio && arp && step % 2 === 1) {
-      playMusicTone(arp * 2, song.tempo * 0.34, 'square', 0.0045, nextMusicNote);
+      playMusicTone(arp * 2, song.tempo * 0.34, 'square', 0.0045 * phraseMix, nextMusicNote);
     }
 
     // A small counter-line answers the lead on alternating beats.
     const counterSource = song.harmony[(step + (phraseStyle === 2 ? 3 : 8)) % song.harmony.length]
       || song.arp[(step + 5) % song.arp.length] * 0.5;
     if (musicLayers.counter && counterSource && [2, 6, 10, 14].includes(step)) {
-      playMusicTone(semitone(counterSource * 1.5, shift), song.tempo * 0.48, 'sine', 0.0055, nextMusicNote);
+      playMusicTone(semitone(counterSource * 1.5, shift), song.tempo * 0.48, 'sine', 0.0055 * phraseMix, nextMusicNote);
     }
 
     // Triad accents mark the start of each half-bar, with a softer mix so the
@@ -538,11 +560,13 @@ function updateMusic() {
     }
 
     if (musicLayers.percussion) {
-      playMusicDrum(song.drums[step], nextMusicNote);
-      // Bar-specific fills keep each return from feeling mechanically identical.
-      if (phraseStyle === 2 && (step === 7 || step === 15)) playMusicDrum('snare', nextMusicNote);
-      if (phraseStyle === 3 && step >= 12 && step % 2 === 0) playMusicDrum('hat', nextMusicNote);
-      if ((phrase === 3 || phrase === 7) && step === 15) playMusicDrum('snare', nextMusicNote);
+      // Pull percussion back in the bridge, then add a fill on the build/turnaround.
+      const quietBridge = phraseStyle === 2;
+      if (!quietBridge || step === 2 || step === 10) {
+        playMusicDrum(quietBridge ? 'hat' : song.drums[step], nextMusicNote);
+      }
+      if (!quietBridge && phraseStyle === 3 && step >= 12 && step % 2 === 0) playMusicDrum('hat', nextMusicNote);
+      if (!quietBridge && (phrase === 3 || phrase === 7) && step === 15) playMusicDrum('snare', nextMusicNote);
     }
 
     // Walking adds a synced light rhythm accent without restarting the tune.
@@ -763,6 +787,24 @@ function calc(m) {
 const xpNeed = (lv) => lv * lv * 6;
 
 const spriteCache = {};
+const MAL_SPRITE_ASSETS = Object.create(null);
+function loadMalSpriteSheet(name, view) {
+  const key = `${name}:${view}`;
+  if (MAL_SPRITE_ASSETS[key]) return MAL_SPRITE_ASSETS[key];
+  if (typeof Image === 'undefined') return null;
+  const image = new Image();
+  MAL_SPRITE_ASSETS[key] = image;
+  image.onload = () => {
+    for (const cachedKey of Object.keys(spriteCache)) {
+      if (cachedKey.startsWith(`${name}:`)) delete spriteCache[cachedKey];
+    }
+  };
+  image.onerror = () => { MAL_SPRITE_ASSETS[key] = null; };
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  image.src = `./assets/sprites/pocketmals/${slug}-${view}.png`;
+  return image;
+}
+
 function malSprite(name, pose = 0, view = 'front') {
   const cacheKey = `${name}:${pose}:${view}`;
   if (spriteCache[cacheKey]) return spriteCache[cacheKey];
@@ -772,6 +814,12 @@ function malSprite(name, pose = 0, view = 'front') {
   c.width = c.height = 48;
   const g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
+  const approvedSheet = loadMalSpriteSheet(name, view);
+  if (approvedSheet?.complete && approvedSheet.naturalWidth >= 48 && approvedSheet.naturalHeight >= 48) {
+    const frameIndex = approvedSheet.naturalWidth >= 384 ? ((Math.floor(Number(pose) || 0) % 8) + 8) % 8 : 0;
+    g.drawImage(approvedSheet, frameIndex * 48, 0, 48, 48, 0, 0, 48, 48);
+    return (spriteCache[cacheKey] = c);
+  }
   const palettes = {
     normal: ['#b38a5f', '#e9c995', '#493b37', '#f3dfb5'],
     fire: ['#c94e35', '#ffad55', '#592d32', '#ffe18b'],
@@ -1627,6 +1675,36 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     sparkle(12, 4, '#f4e3b2');
     sparkle(20, 13, '#c8b5f0');
 
+  // Small, species-type animation accents add a second layer to the idle cycle
+  // without changing each creature's approved silhouette.
+  const poseFrame = ((Math.floor(Number(pose) || 0) % 8) + 8) % 8;
+  const speciesType = MALS[name]?.type;
+  if (view !== 'back') {
+    if (speciesType === 'fire' && [1, 4, 7].includes(poseFrame)) {
+      sparkle(3 + (poseFrame % 3), 4 + (poseFrame % 2), '#ffd27a');
+      px(20, 7 + (poseFrame % 3), 1, 2, '#f08a43');
+    } else if (speciesType === 'water' && [2, 5].includes(poseFrame)) {
+      oval(3, 7, 1, 1.5, '#d9fbff', null);
+      oval(20, 5 + (poseFrame % 2), 1, 1.5, '#fff', null);
+    } else if (speciesType === 'electric' && [1, 4, 6].includes(poseFrame)) {
+      px(2, 10, 2, 1, '#fff4a3'); px(4, 8, 1, 2, '#fff4a3');
+      px(20, 12, 2, 1, '#fff4a3');
+    } else if (speciesType === 'grass' && [2, 6].includes(poseFrame)) {
+      poly([[3, 7],[5, 4],[7, 7],[5, 9]], '#a8d878', null);
+      sparkle(19, 5, '#efffc2');
+    } else if (['ghost', 'psychic', 'fairy'].includes(speciesType) && [1, 4, 7].includes(poseFrame)) {
+      sparkle(poseFrame === 4 ? 2 : 19, poseFrame === 7 ? 5 : 3, '#fff3d1');
+    } else if (speciesType === 'flying' && [2, 6].includes(poseFrame)) {
+      px(2, 12, 3, 1, light); px(19, 11, 3, 1, accent);
+    } else if (speciesType === 'steel' && [0, 4].includes(poseFrame)) {
+      px(11, 14, 2, 2, poseFrame === 0 ? '#fff0a0' : '#8be0d1');
+    } else if (['rock', 'ground'].includes(speciesType) && poseFrame === 4) {
+      px(2, 20, 2, 1, '#c6b18b'); px(20, 19, 2, 1, '#c6b18b');
+    } else if (speciesType === 'bug' && [1, 5].includes(poseFrame)) {
+      px(8, 2, 1, 2, light); px(15, 2, 1, 2, accent);
+    }
+  }
+
   // Rear-facing battle sprite markings: a readable shoulder/back silhouette, not a mirrored face.
   if (view === 'back') {
     px(9, 8, 6, 2, ink);
@@ -1659,12 +1737,15 @@ const MAL_MOTIONS = {
   Bubbish: 'float', Foamish: 'float', Jelluburst: 'float',
   Lizrout: 'trot', Thornko: 'stomp', Branack: 'stomp',
   Lovlittle: 'float', Malittle: 'twitch',
+  Brackibud: 'scuttle', Puglow: 'stomp', Glacub: 'hop',
+  Hauntide: 'float', Duskrowl: 'glide', Ferrivine: 'sway',
+  Drakindle: 'trot', Dunemole: 'dig', Faefern: 'float',
 };
 function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, side = null) {
   const id = MALS[name].id;
   const phase = frame / 5 + id * 1.73;
   const cycle = Math.sin(phase);
-  const motion = MAL_MOTIONS[name];
+  const motion = MAL_MOTIONS[name] || 'sway';
   let lift = 0, lean = 0, squash = 1, shadow = 1;
   switch (motion) {
     case 'float':
@@ -1798,6 +1879,13 @@ const NPCS = {
     { x: 7, y: 5, c: '#2a3550', trainer: 'Team Meridian Grunt Vale', team: [['Gearbit', 9], ['Mothcinder', 10]], money: 720, meridian: true },
     { x: 9, y: 2, c: '#1a2035', trainer: 'Team Meridian Admin Vex', team: [['Gearbit', 11], ['Tuskvolt', 12], ['Latticebot', 13]], money: 2200, boss: true, meridian: true },
   ],
+  league: [
+    { x: 4, y: 3, c: '#b48a50', trainer: 'Elite Four Aster', eliteFour: 1, money: 3200, intro: ['Aster: I specialise in precision and resolve.', 'Every turn matters. Show me how well you know your partners.'], team: [['Gearbit',24],['Sparkit',24],['Voltuff',25],['Latticebot',26]], victory: ['Aster: A clean victory. You read every opening.', 'One member of the Elite Four has been defeated.'] },
+    { x: 15, y: 3, c: '#5b9eb5', trainer: 'Elite Four Brin', eliteFour: 2, money: 3200, intro: ['Brin: The strongest current is the one that keeps moving.', 'Let us see whether your team can adapt.'], team: [['Ripfin',24],['Glacub',25],['Foamish',26],['Marinox',27]], victory: ['Brin: You never lost your rhythm. Well done.', 'Two members of the Elite Four have been defeated.'] },
+    { x: 4, y: 9, c: '#79a85d', trainer: 'Elite Four Solene', eliteFour: 3, money: 3200, intro: ['Solene: Growth takes patience, care, and a strong foundation.', 'Show me the strength of your bond.'], team: [['Grainper',24],['Brackibud',25],['Wheafield',26],['Florion',28]], victory: ['Solene: Your partners trust you. That is a strength no machine can copy.', 'Three members of the Elite Four have been defeated.'] },
+    { x: 15, y: 9, c: '#786b9e', trainer: 'Elite Four Orin', eliteFour: 4, money: 3200, intro: ['Orin: The quietest opponent can be the hardest to read.', 'Keep your focus when the battle turns strange.'], team: [['Wispurr',25],['Hauntide',26],['Duskrowl',27],['Starfox',29]], victory: ['Orin: You faced the unknown without turning away.', 'The entire Elite Four has been defeated. The Champion is ready.'] },
+    { x: 10, y: 11, c: '#d6b15d', trainer: 'Champion Kael', champion: true, money: 6000, intro: ['Kael: So you crossed Alto Ridge and defeated the Elite Four.', 'I am Kael, Champion of Mellora. This final battle is about the journey you built with your partners.', 'Let us give them a battle worth remembering.'], team: [['Tuskvolt',29],['Cragmite',29],['Pyrewing',30],['Jelluburst',31],['Rockage',31],['Drakindle',32]] },
+  ],
 };
 
 function newGame(gender, name) {
@@ -1913,6 +2001,9 @@ function loadFromObject(loaded) {
   }
   if (!['up', 'down', 'left', 'right'].includes(S.dir)) S.dir = 'down';
   S.flags = S.flags && typeof S.flags === 'object' ? S.flags : {};
+  S.flags.eliteFourWins = Array.isArray(S.flags.eliteFourWins)
+    ? [...new Set(S.flags.eliteFourWins.filter((member) => [1, 2, 3, 4].includes(member)))]
+    : [];
   // Remap legacy species names from older Pocketmals builds.
   const remapMal = (m) => {
     if (!m || !m.name) return m;
@@ -2103,6 +2194,9 @@ function tryMove(dir) {
     if (S.map === 'whisperwood' && !S.badges.includes('Grove Badge')) {
       return say('A soft starlight seals the ridge path. Earn the Grove Badge to pass.');
     }
+    if (S.map === 'starlit' && !['Meadow Badge', 'Tide Badge', 'Grove Badge'].every((badge) => S.badges.includes(badge))) {
+      return say('The Alto League gates recognise only trainers who have earned all three Mellora Gym badges.');
+    }
     return changeMap(ex.up[0], S.map === 'sunmeadow' ? 14 : S.x, 13);
   }
   if (ny > 14 && ex.down) return changeMap(ex.down[0], S.x, 1);
@@ -2189,7 +2283,7 @@ function drawAreaTitleCard() {
   ctx.textAlign = 'left';
   ctx.fillStyle = '#5a6f78';
   ctx.font = 'bold 6px "Pokemon DS", Arial, sans-serif';
-  ctx.fillText('LUNARO REGION', x + 24, y + 66);
+  ctx.fillText('MELLORA REGION', x + 24, y + 66);
   ctx.fillStyle = '#9eafae';
   ctx.fillRect(x + 110, y + 63, 190, 1);
   ctx.restore();
@@ -2431,8 +2525,13 @@ async function talk(n) {
   if (n.trainer) {
     const key = S.map + n.x + n.y;
     if (S.beaten[key]) return say(`${n.trainer}: Well battled. Maybe we'll meet again on another route.`);
+    const eliteWins = Array.isArray(S.flags.eliteFourWins) ? S.flags.eliteFourWins : [];
+    if (n.eliteFour > 1 && !eliteWins.includes(n.eliteFour - 1)) return say(`${n.trainer}: The previous Elite Four member must be defeated before I can accept your challenge.`);
+    if (n.champion && eliteWins.length < 4) return say('Champion Kael: Defeat all four members of the Elite Four before challenging me.');
 
-    if (n.boss) {
+    if (n.champion || n.eliteFour) {
+      await sayAll(n.intro || []);
+    } else if (n.boss) {
       await sayAll([
         'Admin Vex: So the professor sent children to interfere.',
         'Admin Vex: Team Meridian does not steal Wishbits for toys. We realign the meridian.',
@@ -2454,6 +2553,25 @@ async function talk(n) {
 
     if (won) {
       S.beaten[key] = true;
+      if (n.eliteFour) {
+        const wins = new Set(Array.isArray(S.flags.eliteFourWins) ? S.flags.eliteFourWins : []);
+        wins.add(n.eliteFour);
+        S.flags.eliteFourWins = [...wins].sort((a, b) => a - b);
+        await sayAll(n.victory || []);
+      }
+      if (n.champion) {
+        S.flags.leagueChampionDefeated = true;
+        S.flags.melloraChampionSeen = true;
+        S.bag['Champion Crest'] = 1;
+        await sayAll([
+          'Kael: You did it. Mellora has a new Champion.',
+          'Your partners stood with you through every route, every Gym, and every challenge.',
+          'Professor Lotus (via radio): Your fieldwork has become part of Mellora history. I could not be prouder.',
+          'Tessa: Champion! I knew you and your partners could do it. Our next journey starts whenever you are ready.',
+          'CHAMPION OF MELLORA',
+          'You received the CHAMPION CREST. Your victory is saved.'
+        ]);
+      }
       save();
       if (n.boss) {
         S.flags.chapter1 = true;
@@ -2883,7 +3001,7 @@ function drawGameMenu(g) {
   }
   const titles = {
     bag: 'BAG', party: 'YOUR PARTNER', dex: 'MALDEX / FIELD JOURNAL',
-    trainer: 'TRAINER CARD', options: 'OPTIONS', box: 'MALBOX / STORAGE', map: 'LUNARO REGION',
+    trainer: 'TRAINER CARD', options: 'OPTIONS', box: 'MALBOX / STORAGE', map: 'MELLORA REGION',
     saved: 'GAME SAVED',
   };
   menuFrame(g, titles[page] || 'MENU');
@@ -3107,25 +3225,21 @@ function drawGameMenu(g) {
   }
   if (page === 'map') {
     const maps = Object.entries(MAPS);
+    const positions = [[72, 48], [72, 91], [160, 91], [244, 48], [244, 137], [160, 171]];
     g.strokeStyle = '#5d91a0';
-    g.lineWidth = 5;
+    g.lineWidth = 4;
     g.beginPath();
-    g.moveTo(72, 68);
-    g.lineTo(72, 120);
-    g.lineTo(171, 120);
-    g.lineTo(244, 74);
+    g.moveTo(72, 58); g.lineTo(72, 91); g.lineTo(160, 91); g.lineTo(244, 48); g.lineTo(244, 137);
     g.stroke();
     maps.forEach(([id, map], index) => {
-      const x = [72, 72, 171, 244][index], y = [58, 108, 108, 62][index];
+      const [x, y] = positions[index] || [160, 171];
       g.fillStyle = S.map === id ? '#f1d66b' : '#79c7ac';
-      g.beginPath();
-      g.arc(x, y, 8, 0, Math.PI * 2);
-      g.fill();
-      menuLabel(g, map.name.slice(0, 14).toUpperCase(), x - 29, y + 23, '#dcebf0', 7);
+      g.beginPath(); g.arc(x, y, 7, 0, Math.PI * 2); g.fill();
+      menuLabel(g, map.name.slice(0, 12).toUpperCase(), Math.max(4, Math.min(252, x - 29)), y + 18, '#dcebf0', 6);
     });
-    menuLabel(g, `NOW EXPLORING ${MAPS[S.map].name.toUpperCase()}`, 45, 173, '#fff2bc', 9);
-    menuLabel(g, `WISHBITS  ${S.wishbits.length} / 3   BADGES  ${S.badges.length} / 3`, 34, 194, '#b7d8e8', 8);
-    menuLabel(g, 'B BACK', 18, 220, '#9bbbd1', 8);
+    menuLabel(g, `NOW EXPLORING ${MAPS[S.map].name.toUpperCase()}`, 45, 190, '#fff2bc', 9);
+    menuLabel(g, `BADGES ${S.badges.length}/3  ELITE ${(S.flags.eliteFourWins || []).length}/4`, 62, 207, '#b7d8e8', 8);
+    menuLabel(g, S.flags.leagueChampionDefeated ? 'MELLORA CHAMPION' : 'B BACK', 18, 226, '#9bbbd1', 8);
     return;
   }
   menuLabel(g, 'Your journey has been saved.', 54, 100, '#fff2bc', 11);
@@ -3223,7 +3337,7 @@ function handleMenuTap(event) {
 lowerCanvas.addEventListener('click', handleMenuTap);
 async function regionMap() {
   await sayAll([
-    'LUNARO REGION',
+    'MELLORA REGION',
     'Covo Town — home, the Lab, and the first Gym.',
     'Route 1 leads north to Solara City, then Ombra Woods.',
     S.badges.includes('Grove Badge')
@@ -3913,24 +4027,47 @@ function drawForestCanopies(firstRow, lastRow) {
 }
 
 const HUMAN_SPRITE_ASSETS = Object.create(null);
-const HUMAN_SPRITE_ROLES = ['player', 'professor', 'mom', 'shy', 'mimi', 'nurse', 'gymLeader', 'trainer', 'villager', 'robot'];
+const HUMAN_SPRITE_ROLES = ['player', 'player-boy', 'player-girl', 'professor', 'mom', 'tessa', 'shy', 'mimi', 'nurse', 'gymLeader', 'trainer', 'meridian', 'villager', 'robot'];
+const HUMAN_SPRITE_DIRECTIONS = ['down', 'up', 'left', 'right'];
+
+// Optional 48x72 character sheets are loaded from original Pocketmals assets.
+// Missing files safely retain the detailed procedural fallback below.
+function loadHumanSpriteAssets() {
+  if (typeof Image === 'undefined') return;
+  for (const role of HUMAN_SPRITE_ROLES) {
+    for (const direction of HUMAN_SPRITE_DIRECTIONS) {
+      const image = new Image();
+      image.onload = () => { HUMAN_SPRITE_ASSETS[`${role}:${direction}`] = image; };
+      image.onerror = () => {};
+      image.src = `./assets/sprites/humans/${role}-${direction}.png`;
+    }
+  }
+}
+loadHumanSpriteAssets();
 
 function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const isMeridian = role === 'meridian';
-  const spriteRole = isMeridian ? 'trainer' : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
+  const spriteRole = isMeridian ? 'meridian'
+    : role === 'player' ? (S?.gender === 'girl' ? 'player-girl' : 'player-boy')
+      : role === 'mimi' ? 'tessa'
+        : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
   const spriteDirection = ['down', 'up', 'left', 'right'].includes(dir) ? dir : 'down';
   const pixelSprite = HUMAN_SPRITE_ASSETS[`${spriteRole}:${spriteDirection}`];
-  if (pixelSprite?.complete && pixelSprite.naturalWidth > 0 && !isMeridian) {
-    const isPlayerSprite = spriteRole === 'player';
+  if (pixelSprite?.complete && pixelSprite.naturalWidth > 0) {
+    const isPlayerSprite = ['player', 'player-boy', 'player-girl'].includes(spriteRole);
     const walkingSprite = (isPlayerSprite && moving) || motion === 'walk';
     const bob = walkingSprite ? (Math.floor(frame / 6) % 2 ? -1 : 0)
       : motion === 'wave' ? Math.sin(frame / 9) * 1.5
-        : motion === 'gesture' ? Math.sin(frame / 18) * 0.6 : 0;
+        : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
+        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    // 48x72 assets are drawn at exactly 16x24 logical pixels (3:1) so
-    // the one-pixel DS palette details stay sharp instead of being blurred.
-    ctx.drawImage(pixelSprite, px - 4, py - 8 + bob, 16, 24);
+    // Assets may be one 48x72 pose or a two-frame 96x72 idle/walk strip.
+    // Both are sampled at native pixel scale with nearest-neighbour rendering.
+    const sourceFrame = pixelSprite.naturalWidth >= 96 && walkingSprite ? Math.floor(frame / 6) % 2 : 0;
+    const sourceWidth = pixelSprite.naturalWidth >= 96 ? 48 : pixelSprite.naturalWidth;
+    const sourceHeight = Math.min(72, pixelSprite.naturalHeight);
+    ctx.drawImage(pixelSprite, sourceFrame * 48, 0, sourceWidth, sourceHeight, px - 4, py - 8 + bob, 16, 24);
     ctx.restore();
     return;
   }
@@ -3956,7 +4093,8 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   // A 16x24 character sprite is drawn with a 1px pixel grid and a little extra height.
   const bob = walking ? (Math.floor(frame / 6) % 2 ? -1 : 0)
     : motion === 'wave' ? Math.sin(frame / 9) * 1.5
-      : motion === 'gesture' ? Math.sin(frame / 18) * 0.6 : 0;
+      : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
+        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
   ctx.translate(px - 4, py - 11 + bob);
   ctx.scale(isPlayer ? 1.12 : 1, isPlayer ? 1.12 : 1);
   const r = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -4048,9 +4186,13 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   }
   if (role === 'professor') {
     // Round spectacles, silver-streaked bob, and a gentle, confident expression.
-    r(4, 6, 4, 3, '#315d68'); r(9, 6, 4, 3, '#315d68');
-    r(5, 7, 2, 1, '#d7f2eb'); r(10, 7, 2, 1, '#d7f2eb');
-    r(8, 7, 1, 1, '#315d68');
+    // Rounded pixel spectacles: stepped corners keep the lenses circular at 1x.
+    r(4, 6, 3, 1, '#315d68'); r(3, 7, 1, 2, '#315d68');
+    r(4, 9, 3, 1, '#315d68'); r(7, 7, 1, 2, '#315d68');
+    r(9, 6, 3, 1, '#315d68'); r(8, 7, 1, 2, '#315d68');
+    r(9, 9, 3, 1, '#315d68'); r(12, 7, 1, 2, '#315d68');
+    r(7, 7, 2, 1, '#315d68');
+    r(5, 7, 1, 1, '#d7f2eb'); r(10, 7, 1, 1, '#d7f2eb');
     r(4, 6, 1, 1, palette.hair);
     r(12, 6, 1, 1, palette.hair);
     r(4, 10, 2, 1, '#e59a9b');
@@ -4142,7 +4284,15 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(3, 16, 2, 3, '#e8cb8d');
   }
 
-  if (motion === 'wave' || motion === 'gesture') {
+  if (motion === 'research' && role === 'professor') {
+    const page = Math.floor(frame / 28) % 2;
+    r(11, 13, 4, 6, '#6d8f99');
+    r(12, 14, 3, 4, '#f8f2df');
+    r(13 + page, 15, 1, 2, '#7eb5ae');
+    r(12, 12, 2, 3, palette.coat);
+    r(13, 10, 2, 3, skin);
+    if (Math.floor(frame / 42) % 3 === 0) r(15, 9, 1, 1, '#f2d47e');
+  } else if (motion === 'wave' || motion === 'gesture') {
     const wave = motion === 'wave' ? Math.round(Math.sin(frame / 4) * 2) : Math.round(Math.sin(frame / 8) * 1);
     r(12, 12 - wave, 2, 4, palette.coat);
     r(13, 9 - wave, 2, 4, skin);
@@ -4309,7 +4459,7 @@ function drawRoom() {
     ctx.fillStyle = '#f8edc8'; ctx.fillRect(171, 27, 8, 13);
     ctx.fillStyle = '#83b8bd'; ctx.fillRect(183, 26, 13, 15);
     ctx.fillStyle = '#e6c879'; ctx.fillRect(201, 27, 12, 14);
-    text('LUNARO FIELD LAB', 106, 51, '#526b69', 6);
+    text('MELLORA FIELD LAB', 106, 51, '#526b69', 6);
 
     ctx.fillStyle = '#9c7658'; ctx.fillRect(13, 73, 72, 12);
     ctx.fillStyle = '#e6c38c'; ctx.fillRect(16, 70, 66, 7);
@@ -4373,8 +4523,61 @@ function drawRoom() {
     ctx.fillStyle = '#f4f2e7'; ctx.fillRect(250, 138, 56, 14);
     text('SPECIMENS', 258, 148, '#51717a', 6);
 
+    // Research-room details: a framed region map, specimen shelf, lab plaque,
+    // warm task lights and a floor runner give the lab a clear visual identity.
+    ctx.fillStyle = '#486e78'; ctx.fillRect(116, 4, 88, 12);
+    ctx.fillStyle = '#e8e0bf'; ctx.fillRect(119, 7, 82, 6);
+    ctx.fillStyle = '#4e7780'; ctx.fillRect(122, 8, 76, 1);
+    ctx.fillStyle = '#7bb3a4'; ctx.fillRect(125, 10, 13, 2);
+    ctx.fillStyle = '#d9b66f'; ctx.fillRect(143, 10, 9, 2);
+    ctx.fillStyle = '#8aaf9d'; ctx.fillRect(157, 10, 12, 2);
+    ctx.fillStyle = '#d9b66f'; ctx.fillRect(174, 10, 17, 2);
+
+    // Wall-mounted habitat map with small route pins.
+    ctx.fillStyle = '#6e8790'; ctx.fillRect(13, 60, 62, 31);
+    ctx.fillStyle = '#edf1dc'; ctx.fillRect(16, 63, 56, 25);
+    ctx.fillStyle = '#b9d9c8'; ctx.fillRect(19, 66, 50, 19);
+    ctx.fillStyle = '#78a98c'; ctx.fillRect(24, 69, 12, 7);
+    ctx.fillRect(43, 74, 17, 6);
+    ctx.fillStyle = '#d6a85f'; ctx.fillRect(31, 72, 3, 3);
+    ctx.fillRect(51, 69, 3, 3);
+    ctx.fillStyle = '#e58a7d'; ctx.fillRect(60, 78, 3, 3);
+
+    // Specimen shelf: four glass jars, labels and a tiny desk lamp.
+    ctx.fillStyle = '#805e4a'; ctx.fillRect(242, 91, 65, 5);
+    ctx.fillStyle = '#d6bd91'; ctx.fillRect(245, 88, 59, 3);
+    for (let i = 0; i < 4; i++) {
+      const bx = 247 + i * 14;
+      ctx.fillStyle = '#d9eee2'; ctx.fillRect(bx, 78, 8, 10);
+      ctx.fillStyle = ['#79b6a9','#e5c778','#91a9d3','#d58a83'][i];
+      ctx.fillRect(bx + 2, 81, 4, 5);
+      ctx.fillStyle = '#fff6d7'; ctx.fillRect(bx + 2, 77, 4, 2);
+    }
+    ctx.fillStyle = '#d8bd83'; ctx.fillRect(292, 69, 3, 9);
+    ctx.fillStyle = '#f7e5a5'; ctx.fillRect(288, 67, 11, 3);
+
+    // A soft runner and compass emblem mark the centre work area.
+    ctx.fillStyle = '#d1dfd1'; ctx.fillRect(108, 166, 104, 43);
+    ctx.fillStyle = '#a7c8b8'; ctx.fillRect(112, 170, 96, 35);
+    ctx.fillStyle = '#eaf0df'; ctx.fillRect(118, 174, 84, 27);
+    ctx.fillStyle = '#6eaaa0'; ctx.fillRect(157, 181, 7, 13);
+    ctx.fillStyle = '#e1bd70'; ctx.fillRect(153, 185, 15, 4);
+    ctx.fillStyle = '#f7e9bb'; ctx.fillRect(159, 178, 3, 19);
+
+    // Small alternating status lights and rising specimen bubbles.
+    const labPulse = Math.floor(frame / 12) % 2;
+    ctx.fillStyle = labPulse ? '#fff0a8' : '#8ed6c5';
+    ctx.fillRect(143, 24, 3, 3);
+    ctx.fillStyle = labPulse ? '#8ed6c5' : '#fff0a8';
+    ctx.fillRect(147, 24, 3, 3);
+    for (let i = 0; i < 3; i++) {
+      const bubbleY = 88 - ((frame / 8 + i * 5) % 10);
+      ctx.fillStyle = '#ffffffaa';
+      ctx.fillRect(107 + i * 43, bubbleY, 2, 2);
+    }
+
     drawPerson(8 * TS, 6 * TS, '#d96d78', 'down', 'mimi', 'wave');
-    drawPerson(11 * TS, 5 * TS, '#f5f0d8', 'down', 'professor', 'gesture');
+    drawPerson(11 * TS, 5 * TS, '#f5f0d8', 'down', 'professor', 'research');
     text('TESSA', 112, 99, '#8a4e61', 6);
     text('PROF. LOTUS', 172, 81, '#425f71', 6);
   } else {
@@ -4734,7 +4937,7 @@ function drawIntroRoom() {
     ctx.fillStyle = '#f9f0d8'; ctx.fillRect(x + Math.floor(w / 2) - 2, y, 4, h);
     ctx.fillRect(x, y + Math.floor(h / 2), w, 3);
   };
-  const introHeader = (left, right = 'LUNARO REGION') => {
+  const introHeader = (left, right = 'MELLORA REGION') => {
     ctx.fillStyle = '#20384c'; ctx.fillRect(5, 5, 310, 17);
     text(left, 11, 17, '#fff0c5', 8);
     text(right, 220, 17, '#c9e4e1', 6);
@@ -4850,6 +5053,8 @@ function drawWorld() {
       const role = n.id === 'mimi' ? 'mimi'
         : n.id === 'lumi' || n.id === 'lumi2' ? 'shy'
         : (n.meridian || n.boss) ? 'meridian'
+        : n.champion ? 'gymLeader'
+        : n.eliteFour ? 'gymLeader'
         : n.trainer ? 'trainer' : 'villager';
       drawPerson(n.x * TS, n.y * TS, n.c, 'down', role);
     }
@@ -5241,8 +5446,16 @@ function drawTitle() {
 }
 
 function drawOpening() {
-  const scene = openingIndex % 4;
+  const elapsed = Math.max(0, frame - openingStartedAt);
+  const sceneLength = 210;
+  const scene = Math.min(3, Math.floor(elapsed / sceneLength));
+  const sceneFrame = elapsed % sceneLength;
+  const sceneFade = Math.max(0, 1 - Math.min(sceneFrame, sceneLength - sceneFrame) / 24);
   ctx.fillStyle = '#142a40'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  // A restrained camera drift keeps the establishing shots alive between cuts.
+  const cameraDrift = Math.sin(elapsed / 86) * 4 + Math.sin(elapsed / 173) * 2;
+  ctx.translate(cameraDrift, Math.sin(elapsed / 120) * 1.5);
 
   if (scene === 0) {
     // Wide establishing shot of Mellora.
@@ -5344,8 +5557,29 @@ function drawOpening() {
       ctx.fillRect(x, y, 2, 2);
     }
   }
-}
+  ctx.restore();
 
+  // Short dissolves join the four visual beats into one continuous sequence.
+  if (sceneFade > 0) {
+    ctx.fillStyle = `rgba(9, 22, 37, ${sceneFade * 0.72})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  const captions = [
+    'MELLORA  /  A REGION OF MANY HABITATS',
+    'LIFE STIRS ALONG THE MEADOW TRAILS',
+    'A NEW GENERATION OF FIELD RESEARCHERS',
+    'SOMEWHERE BEYOND THE KNOWN WORLD...'
+  ];
+  ctx.fillStyle = 'rgba(12, 27, 43, 0.72)';
+  ctx.fillRect(7, 207, 306, 25);
+  text(captions[scene], 14, 218, '#f7edcf', 7);
+  const skipPulse = 0.65 + Math.sin(frame / 8) * 0.25;
+  ctx.fillStyle = `rgba(255, 244, 204, ${skipPulse})`;
+  ctx.font = '7px "Pokemon DS", Arial, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('press a / start to skip', 306, 198);
+  ctx.textAlign = 'left';
+}
 function playOpening(returnMode = 'title') {
   openingIndex = 0;
   openingStartedAt = frame;
@@ -5356,6 +5590,7 @@ function playOpening(returnMode = 'title') {
 }
 function finishOpeningSequence() {
   mode = openingReturnMode;
+  flash = Math.max(flash, 0.82);
   titleSel = 0;
   const resolve = finishOpening;
   finishOpening = null;
@@ -5436,11 +5671,7 @@ function update() {
       finishOpeningSequence();
       return;
     }
-    if (frame - openingStartedAt >= 135) {
-      openingIndex++;
-      openingStartedAt = frame;
-      if (openingIndex >= 4) finishOpeningSequence();
-    }
+    if (frame - openingStartedAt >= 840) finishOpeningSequence();
     return;
   }
   if (ui) {
