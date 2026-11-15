@@ -194,6 +194,7 @@ music.route1 = { tempo:0.142, lead:[587,659,784,880,784,659,587,494,523,587,659,
 music.solara = { tempo:0.162, lead:[698,784,880,1047,988,880,784,698,659,784,880,988,1175,1047,880,784], harmony:[349,0,392,0,440,0,523,0,330,0,392,0,494,0,440,0], bass:[175,175,196,196,165,165,220,220], arp:[698,784,880,1047,880,784,698,784,659,784,988,1175,1047,988,880,784], drums:['kick',null,'hat','hat','snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat','hat'], summer:[0,880,0,1047,0,1175,0,1047,0,988,0,880,0,988,0,1047] };
 music.ombra = { tempo:0.205, lead:[330,392,440,523,494,440,392,330,294,330,392,440,523,494,392,349], harmony:[165,0,196,0,220,0,262,0,147,0,165,0,196,0,220,0], bass:[82,82,98,98,110,110,73,73], arp:[330,392,440,523,440,392,330,392,294,349,392,440,523,440,392,330], drums:[null,null,'hat',null,null,'hat',null,null,'kick',null,null,'hat',null,null,'hat',null], summer:[0,523,0,587,0,659,0,587,0,523,0,440,0,494,0,523] };
 music.altoRidge = { tempo:0.176, lead:[494,587,698,784,880,784,698,587,523,587,698,880,988,880,784,698], harmony:[247,0,294,0,349,0,392,0,262,0,294,0,349,0,440,0], bass:[123,123,147,147,131,131,175,175], arp:[494,587,698,880,784,698,587,698,523,587,698,880,988,880,784,698], drums:['kick',null,null,'hat',null,null,'snare',null,'kick',null,'hat',null,null,'hat','snare',null], summer:[0,784,0,880,0,988,0,1175,0,988,0,880,0,784,0,698] };
+music.opening = { tempo:0.235, lead:[392,494,587,784,698,587,494,392,440,523,659,784,880,784,659,523], harmony:[196,0,247,0,294,0,392,0,220,0,262,0,330,0,440,0], bass:[98,98,73,73,110,110,82,82], arp:[392,494,587,784,698,587,494,587,440,523,659,880,784,659,523,440], drums:[null,null,null,null,'hat',null,null,null,'kick',null,null,null,'snare',null,null,null], summer:[0,0,587,0,0,659,0,784,0,0,698,0,0,784,0,880] };
 music.league = { tempo:0.128, lead:[587,784,880,1175,1047,988,880,784,698,880,988,1319,1175,1047,988,880], harmony:[294,0,392,0,440,0,587,0,349,0,440,0,523,0,494,0], bass:[147,147,196,196,175,175,220,220], arp:[587,784,880,1175,1047,880,784,880,698,880,988,1319,1175,1047,988,880], drums:['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare','hat','snare',null], summer:[0,988,0,1175,0,1319,0,1568,0,1319,0,1175,0,1047,0,988] };
 
 function beep(freq, dur = 0.08, type = 'square', vol = 0.04, when = actx && actx.currentTime) {
@@ -460,7 +461,8 @@ function updateMusic() {
   };
   const roomTrack = S?.room?.type?.startsWith('gym') ? 'gym' : S?.room?.type;
   const track = mode === 'battle' ? 'battle'
-    : mode === 'title' || mode === 'select' || mode === 'opening' ? 'title'
+    : mode === 'opening' ? 'opening'
+    : mode === 'title' || mode === 'select' ? 'title'
       : S && S.room ? roomTrack
         : areaTracks[S?.map] || 'world';
 
@@ -487,6 +489,7 @@ function updateMusic() {
     const phrase = Math.floor(musicStep / 16) % 8;
     const phraseStyle = phrase % 4; // A / A' / bridge / turnaround
     const progressions = {
+      opening:[0, 5, 3, 7, 0, 2, 5, 7],
       title:  [0, 5, 7, 2, 0, 3, 5, 7],
       world:  [0, 5, 2, 7, 3, 0, 5, 7],
       route:  [0, 5, 2, 7, 3, 0, 5, 2],
@@ -3962,14 +3965,33 @@ function drawForestCanopies(firstRow, lastRow) {
 }
 
 const HUMAN_SPRITE_ASSETS = Object.create(null);
-const HUMAN_SPRITE_ROLES = ['player', 'professor', 'mom', 'shy', 'mimi', 'nurse', 'gymLeader', 'trainer', 'villager', 'robot'];
+const HUMAN_SPRITE_ROLES = ['player', 'player-boy', 'player-girl', 'professor', 'mom', 'tessa', 'shy', 'mimi', 'nurse', 'gymLeader', 'trainer', 'meridian', 'villager', 'robot'];
+const HUMAN_SPRITE_DIRECTIONS = ['down', 'up', 'left', 'right'];
+
+// Optional 48x72 character sheets are loaded from original Pocketmals assets.
+// Missing files safely retain the detailed procedural fallback below.
+function loadHumanSpriteAssets() {
+  if (typeof Image === 'undefined') return;
+  for (const role of HUMAN_SPRITE_ROLES) {
+    for (const direction of HUMAN_SPRITE_DIRECTIONS) {
+      const image = new Image();
+      image.onload = () => { HUMAN_SPRITE_ASSETS[`${role}:${direction}`] = image; };
+      image.onerror = () => {};
+      image.src = `./assets/sprites/humans/${role}-${direction}.png`;
+    }
+  }
+}
+loadHumanSpriteAssets();
 
 function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const isMeridian = role === 'meridian';
-  const spriteRole = isMeridian ? 'trainer' : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
+  const spriteRole = isMeridian ? 'meridian'
+    : role === 'player' ? (S?.gender === 'girl' ? 'player-girl' : 'player-boy')
+      : role === 'mimi' ? 'tessa'
+        : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
   const spriteDirection = ['down', 'up', 'left', 'right'].includes(dir) ? dir : 'down';
   const pixelSprite = HUMAN_SPRITE_ASSETS[`${spriteRole}:${spriteDirection}`];
-  if (pixelSprite?.complete && pixelSprite.naturalWidth > 0 && !isMeridian) {
+  if (pixelSprite?.complete && pixelSprite.naturalWidth > 0) {
     const isPlayerSprite = spriteRole === 'player';
     const walkingSprite = (isPlayerSprite && moving) || motion === 'walk';
     const bob = walkingSprite ? (Math.floor(frame / 6) % 2 ? -1 : 0)
@@ -5359,8 +5381,16 @@ function drawTitle() {
 }
 
 function drawOpening() {
-  const scene = openingIndex % 4;
+  const elapsed = Math.max(0, frame - openingStartedAt);
+  const sceneLength = 210;
+  const scene = Math.min(3, Math.floor(elapsed / sceneLength));
+  const sceneFrame = elapsed % sceneLength;
+  const sceneFade = Math.max(0, 1 - Math.min(sceneFrame, sceneLength - sceneFrame) / 24);
   ctx.fillStyle = '#142a40'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  // A restrained camera drift keeps the establishing shots alive between cuts.
+  const cameraDrift = Math.sin(elapsed / 86) * 4 + Math.sin(elapsed / 173) * 2;
+  ctx.translate(cameraDrift, Math.sin(elapsed / 120) * 1.5);
 
   if (scene === 0) {
     // Wide establishing shot of Mellora.
@@ -5462,8 +5492,29 @@ function drawOpening() {
       ctx.fillRect(x, y, 2, 2);
     }
   }
-}
+  ctx.restore();
 
+  // Short dissolves join the four visual beats into one continuous sequence.
+  if (sceneFade > 0) {
+    ctx.fillStyle = `rgba(9, 22, 37, ${sceneFade * 0.72})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  const captions = [
+    'MELLORA  /  A REGION OF MANY HABITATS',
+    'LIFE STIRS ALONG THE MEADOW TRAILS',
+    'A NEW GENERATION OF FIELD RESEARCHERS',
+    'SOMEWHERE BEYOND THE KNOWN WORLD...'
+  ];
+  ctx.fillStyle = 'rgba(12, 27, 43, 0.72)';
+  ctx.fillRect(7, 207, 306, 25);
+  text(captions[scene], 14, 218, '#f7edcf', 7);
+  const skipPulse = 0.65 + Math.sin(frame / 8) * 0.25;
+  ctx.fillStyle = `rgba(255, 244, 204, ${skipPulse})`;
+  ctx.font = '7px "Pokemon DS", Arial, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('press a / start to skip', 306, 198);
+  ctx.textAlign = 'left';
+}
 function playOpening(returnMode = 'title') {
   openingIndex = 0;
   openingStartedAt = frame;
@@ -5474,6 +5525,7 @@ function playOpening(returnMode = 'title') {
 }
 function finishOpeningSequence() {
   mode = openingReturnMode;
+  flash = Math.max(flash, 0.82);
   titleSel = 0;
   const resolve = finishOpening;
   finishOpening = null;
@@ -5554,11 +5606,7 @@ function update() {
       finishOpeningSequence();
       return;
     }
-    if (frame - openingStartedAt >= 135) {
-      openingIndex++;
-      openingStartedAt = frame;
-      if (openingIndex >= 4) finishOpeningSequence();
-    }
+    if (frame - openingStartedAt >= 840) finishOpeningSequence();
     return;
   }
   if (ui) {
