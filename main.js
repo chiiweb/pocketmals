@@ -1614,6 +1614,36 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     sparkle(12, 15, '#f4e3b2');
   }
 
+  // Small, species-type animation accents add a second layer to the idle cycle
+  // without changing each creature's approved silhouette.
+  const poseFrame = ((Math.floor(Number(pose) || 0) % 8) + 8) % 8;
+  const speciesType = MALS[name]?.type;
+  if (view !== 'back') {
+    if (speciesType === 'fire' && [1, 4, 7].includes(poseFrame)) {
+      sparkle(3 + (poseFrame % 3), 4 + (poseFrame % 2), '#ffd27a');
+      px(20, 7 + (poseFrame % 3), 1, 2, '#f08a43');
+    } else if (speciesType === 'water' && [2, 5].includes(poseFrame)) {
+      oval(3, 7, 1, 1.5, '#d9fbff', null);
+      oval(20, 5 + (poseFrame % 2), 1, 1.5, '#fff', null);
+    } else if (speciesType === 'electric' && [1, 4, 6].includes(poseFrame)) {
+      px(2, 10, 2, 1, '#fff4a3'); px(4, 8, 1, 2, '#fff4a3');
+      px(20, 12, 2, 1, '#fff4a3');
+    } else if (speciesType === 'grass' && [2, 6].includes(poseFrame)) {
+      poly([[3, 7],[5, 4],[7, 7],[5, 9]], '#a8d878', null);
+      sparkle(19, 5, '#efffc2');
+    } else if (['ghost', 'psychic', 'fairy'].includes(speciesType) && [1, 4, 7].includes(poseFrame)) {
+      sparkle(poseFrame === 4 ? 2 : 19, poseFrame === 7 ? 5 : 3, '#fff3d1');
+    } else if (speciesType === 'flying' && [2, 6].includes(poseFrame)) {
+      px(2, 12, 3, 1, light); px(19, 11, 3, 1, accent);
+    } else if (speciesType === 'steel' && [0, 4].includes(poseFrame)) {
+      px(11, 14, 2, 2, poseFrame === 0 ? '#fff0a0' : '#8be0d1');
+    } else if (['rock', 'ground'].includes(speciesType) && poseFrame === 4) {
+      px(2, 20, 2, 1, '#c6b18b'); px(20, 19, 2, 1, '#c6b18b');
+    } else if (speciesType === 'bug' && [1, 5].includes(poseFrame)) {
+      px(8, 2, 1, 2, light); px(15, 2, 1, 2, accent);
+    }
+  }
+
   // Rear-facing battle sprite markings: a readable shoulder/back silhouette, not a mirrored face.
   if (view === 'back') {
     px(9, 8, 6, 2, ink);
@@ -1646,12 +1676,15 @@ const MAL_MOTIONS = {
   Bubbish: 'float', Foamish: 'float', Jelluburst: 'float',
   Lizrout: 'trot', Thornko: 'stomp', Branack: 'stomp',
   Lovlittle: 'float', Malittle: 'twitch',
+  Brackibud: 'scuttle', Puglow: 'stomp', Glacub: 'hop',
+  Hauntide: 'float', Duskrowl: 'glide', Ferrivine: 'sway',
+  Drakindle: 'trot', Dunemole: 'dig', Faefern: 'float',
 };
 function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, side = null) {
   const id = MALS[name].id;
   const phase = frame / 5 + id * 1.73;
   const cycle = Math.sin(phase);
-  const motion = MAL_MOTIONS[name];
+  const motion = MAL_MOTIONS[name] || 'sway';
   let lift = 0, lean = 0, squash = 1, shadow = 1;
   switch (motion) {
     case 'float':
