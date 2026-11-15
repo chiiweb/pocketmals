@@ -4020,7 +4020,7 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const spriteDirection = ['down', 'up', 'left', 'right'].includes(dir) ? dir : 'down';
   const pixelSprite = HUMAN_SPRITE_ASSETS[`${spriteRole}:${spriteDirection}`];
   if (pixelSprite?.complete && pixelSprite.naturalWidth > 0) {
-    const isPlayerSprite = spriteRole === 'player';
+    const isPlayerSprite = ['player', 'player-boy', 'player-girl'].includes(spriteRole);
     const walkingSprite = (isPlayerSprite && moving) || motion === 'walk';
     const bob = walkingSprite ? (Math.floor(frame / 6) % 2 ? -1 : 0)
       : motion === 'wave' ? Math.sin(frame / 9) * 1.5
