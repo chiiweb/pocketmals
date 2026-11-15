@@ -506,6 +506,8 @@ function updateMusic() {
       league: [0, 5, 7, 3, 0, 2, 5, 7],
     };
     const shift = (progressions[track] || progressions.world)[phrase];
+    // The B section breathes; the turnaround builds back into the next phrase.
+    const phraseMix = phraseStyle === 2 ? 0.68 : phraseStyle === 3 ? 1.16 : phraseStyle === 1 ? 0.92 : 1;
     const semitone = (freq, amount = 0) => freq ? freq * Math.pow(2, amount / 12) : 0;
     let lead = song.lead[step];
     let harmony = song.harmony[step];
@@ -529,23 +531,23 @@ function updateMusic() {
     arp = semitone(arp, shift);
 
     if (musicLayers.melody && lead) {
-      playMusicTone(lead, song.tempo * 0.76, 'square', 0.016, nextMusicNote);
+      playMusicTone(lead, song.tempo * 0.76, 'square', 0.016 * phraseMix, nextMusicNote);
     }
     if (musicLayers.harmony && harmony) {
-      playMusicTone(harmony, song.tempo * 1.35, 'triangle', 0.008, nextMusicNote);
+      playMusicTone(harmony, song.tempo * 1.35, 'triangle', 0.008 * phraseMix, nextMusicNote);
     }
     if (musicLayers.bass && bass && step % 2 === 0) {
-      playMusicTone(bass, song.tempo * 1.8, 'triangle', 0.024, nextMusicNote);
+      playMusicTone(bass, song.tempo * 1.8, 'triangle', phraseStyle === 2 ? 0.015 : phraseStyle === 3 ? 0.03 : 0.024, nextMusicNote);
     }
     if (musicLayers.arpeggio && arp && step % 2 === 1) {
-      playMusicTone(arp * 2, song.tempo * 0.34, 'square', 0.0045, nextMusicNote);
+      playMusicTone(arp * 2, song.tempo * 0.34, 'square', 0.0045 * phraseMix, nextMusicNote);
     }
 
     // A small counter-line answers the lead on alternating beats.
     const counterSource = song.harmony[(step + (phraseStyle === 2 ? 3 : 8)) % song.harmony.length]
       || song.arp[(step + 5) % song.arp.length] * 0.5;
     if (musicLayers.counter && counterSource && [2, 6, 10, 14].includes(step)) {
-      playMusicTone(semitone(counterSource * 1.5, shift), song.tempo * 0.48, 'sine', 0.0055, nextMusicNote);
+      playMusicTone(semitone(counterSource * 1.5, shift), song.tempo * 0.48, 'sine', 0.0055 * phraseMix, nextMusicNote);
     }
 
     // Triad accents mark the start of each half-bar, with a softer mix so the
@@ -558,11 +560,13 @@ function updateMusic() {
     }
 
     if (musicLayers.percussion) {
-      playMusicDrum(song.drums[step], nextMusicNote);
-      // Bar-specific fills keep each return from feeling mechanically identical.
-      if (phraseStyle === 2 && (step === 7 || step === 15)) playMusicDrum('snare', nextMusicNote);
-      if (phraseStyle === 3 && step >= 12 && step % 2 === 0) playMusicDrum('hat', nextMusicNote);
-      if ((phrase === 3 || phrase === 7) && step === 15) playMusicDrum('snare', nextMusicNote);
+      // Pull percussion back in the bridge, then add a fill on the build/turnaround.
+      const quietBridge = phraseStyle === 2;
+      if (!quietBridge || step === 2 || step === 10) {
+        playMusicDrum(quietBridge ? 'hat' : song.drums[step], nextMusicNote);
+      }
+      if (!quietBridge && phraseStyle === 3 && step >= 12 && step % 2 === 0) playMusicDrum('hat', nextMusicNote);
+      if (!quietBridge && (phrase === 3 || phrase === 7) && step === 15) playMusicDrum('snare', nextMusicNote);
     }
 
     // Walking adds a synced light rhythm accent without restarting the tune.
