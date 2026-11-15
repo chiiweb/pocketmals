@@ -2225,28 +2225,30 @@ function healAll() {
 }
 
 function canClaimWishbitGift() {
-  return S.flags.starter && S.wishbits.length >= 3
-    && !S.flags.wishbitGift && !S.flags.wispurr && !S.caught.Wispurr;
+  return Boolean(S.flags.starter) && S.wishbits.length >= 3 && !S.flags.wishbitGift;
 }
 
 async function claimWishbitGift() {
   await sayAll([
     'Professor Lotus: Three Wishbits! Their light has found a pattern...',
-    'The stones glow together, and a small Pocketmal appears in the light.',
-    'Professor Lotus: I promised you a gift for completing this research. Which one would you like?'
+    'The stones glow together, and two small Pocketmals emerge from the glow.',
+    'Professor Lotus: I promised you one of these as a research gift. Lovlittle and Malittle are both ready to join you, but you may choose only one.'
   ]);
   let pick = -1;
   while (pick < 0) {
-    pick = await choose(['Lovlittle  /  FAIRY-NORMAL', 'Malittle  /  DARK-GHOST'], 'Choose your Wishbit gift');
+    pick = await choose(['Lovlittle  /  FAIRY-NORMAL', 'Malittle  /  DARK-GHOST'], 'Choose your one Wishbit gift');
   }
   const name = ['Lovlittle', 'Malittle'][pick];
+  // Record the one-time choice before adding the gift so the event cannot repeat.
+  S.flags.wishbitGift = name;
+  save();
   const gift = makeMal(name, 10, Math.random() < 1 / pocketmalShinyOdds());
   await addMal(gift, { askNickname: false });
-  S.flags.wishbitGift = name;
   save();
   await sayAll([
     `Professor Lotus: ${name} is your gift. I'll record what we learned from the stones.`,
-    `${name} joined your team, or was sent to the Malbox if your party was full.`
+    `${name} joined your team, or was sent to the MALBOX if your party was full.`,
+    'Professor Lotus: The other Pocketmal will remain here at the lab. This choice is yours alone.'
   ]);
 }
 
@@ -2307,11 +2309,13 @@ async function shop() {
   }
 }
 
-async function addMal(m) {
+async function addMal(m, options = {}) {
   S.seen[m.name] = S.caught[m.name] = true;
-  await say(`Would you like to give ${m.name} a nickname?`);
-  if (await choose(['Give a nickname', 'Keep species name'], 'Name your Pocketmal') === 0) {
-    m.nickname = await askNickname(m.name) || '';
+  if (options.askNickname !== false) {
+    await say(`Would you like to give ${m.name} a nickname?`);
+    if (await choose(['Give a nickname', 'Keep species name'], 'Name your Pocketmal') === 0) {
+      m.nickname = await askNickname(m.name) || '';
+    }
   }
   if (S.party.length < 6) S.party.push(m);
   else {
