@@ -783,6 +783,24 @@ function calc(m) {
 const xpNeed = (lv) => lv * lv * 6;
 
 const spriteCache = {};
+const MAL_SPRITE_ASSETS = Object.create(null);
+function loadMalSpriteSheet(name, view) {
+  const key = `${name}:${view}`;
+  if (MAL_SPRITE_ASSETS[key]) return MAL_SPRITE_ASSETS[key];
+  if (typeof Image === 'undefined') return null;
+  const image = new Image();
+  MAL_SPRITE_ASSETS[key] = image;
+  image.onload = () => {
+    for (const cachedKey of Object.keys(spriteCache)) {
+      if (cachedKey.startsWith(`${name}:`)) delete spriteCache[cachedKey];
+    }
+  };
+  image.onerror = () => { MAL_SPRITE_ASSETS[key] = null; };
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  image.src = `./assets/sprites/pocketmals/${slug}-${view}.png`;
+  return image;
+}
+
 function malSprite(name, pose = 0, view = 'front') {
   const cacheKey = `${name}:${pose}:${view}`;
   if (spriteCache[cacheKey]) return spriteCache[cacheKey];
@@ -792,6 +810,12 @@ function malSprite(name, pose = 0, view = 'front') {
   c.width = c.height = 48;
   const g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
+  const approvedSheet = loadMalSpriteSheet(name, view);
+  if (approvedSheet?.complete && approvedSheet.naturalWidth >= 48 && approvedSheet.naturalHeight >= 48) {
+    const frameIndex = approvedSheet.naturalWidth >= 384 ? ((Math.floor(Number(pose) || 0) % 8) + 8) % 8 : 0;
+    g.drawImage(approvedSheet, frameIndex * 48, 0, 48, 48, 0, 0, 48, 48);
+    return (spriteCache[cacheKey] = c);
+  }
   const palettes = {
     normal: ['#b38a5f', '#e9c995', '#493b37', '#f3dfb5'],
     fire: ['#c94e35', '#ffad55', '#592d32', '#ffe18b'],
