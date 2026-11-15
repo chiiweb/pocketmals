@@ -53,5 +53,13 @@ Suggested filenames: `creature-01-reference.png` through `creature-06-reference.
 - Balance walking accents, battle cues, menu sounds, healing jingles, and Pocketmal cries.
 - Respect music and sound-effects toggles.
 
+## Male/female sprite variants
+
+- Do not invent male/female visual differences for every species.
+- Add separate male and female art only when the owner-approved creature design has a visible distinction that should be represented in the game.
+- Keep species silhouette, palette identity, face, markings, and proportions consistent between variants; change only the confirmed distinguishing features.
+- Species without a confirmed difference should share the same sprite art. Do not add random bows, lashes, colour swaps, or body-shape changes as shorthand for gender.
+- If an original reference image does not clearly establish a variant, ask the owner before designing one.
+
 ## Current fallback implementation
 The code contains procedural creature drawings and procedural human sprites. They are fallbacks, not substitutes for the six supplied reference designs or finished production sprite sheets. Replace fallback art only after approved source art is available, and keep the game playable if an optional sprite file is missing.
