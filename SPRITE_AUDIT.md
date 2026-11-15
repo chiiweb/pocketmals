@@ -54,3 +54,17 @@ Before calling the sprite set complete, check:
 - idle, movement, attack, hurt and faint animations;
 - shiny palettes that preserve the approved design;
 - no blank species or missing animation frames.
+
+
+## Runtime asset pipeline update — November 15, 2026
+
+The game now has optional production-art loaders while retaining procedural fallbacks:
+
+- Human art loads from `assets/sprites/humans/` using separate boy/girl player roles and named roles for Professor Lotus, Mom, Tessa, trainers, Gym Leaders, Team Meridian, nurses, villagers and robots. Four directional PNGs are supported; each may be a static 48 x 72 pose or a two-frame 96 x 72 idle/walk strip.
+- Pocketmal art loads from `assets/sprites/pocketmals/` as separate `{species}-front.png` and `{species}-back.png` sheets. A sheet may be a static 48 x 48 pose or an eight-frame 384 x 48 strip.
+- These shared species sheets are used by the existing battle, party/box, summary/Pokédex, opening and overworld follower rendering paths.
+- Missing or failed image files fall back to the existing procedural renderer. No finished production PNG sheets have been added yet.
+
+The opening now uses a separate original cinematic music track, an 840-frame timeline, gentle camera drift, dissolves between visual beats and an on-screen skip prompt. The sequencer also now reduces percussion and mix density during bridge phrases and increases bass/percussion energy during turnarounds.
+
+This is infrastructure and presentation work, not a completed hand-drawn sprite replacement. The nine missing species silhouettes and the six unavailable owner reference drawings remain outstanding. The browser still needs a visual/audio playtest before this can be called finished.
