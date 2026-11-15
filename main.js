@@ -3974,7 +3974,8 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     const walkingSprite = (isPlayerSprite && moving) || motion === 'walk';
     const bob = walkingSprite ? (Math.floor(frame / 6) % 2 ? -1 : 0)
       : motion === 'wave' ? Math.sin(frame / 9) * 1.5
-        : motion === 'gesture' ? Math.sin(frame / 18) * 0.6 : 0;
+        : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
+        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     // 48x72 assets are drawn at exactly 16x24 logical pixels (3:1) so
@@ -4005,7 +4006,8 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   // A 16x24 character sprite is drawn with a 1px pixel grid and a little extra height.
   const bob = walking ? (Math.floor(frame / 6) % 2 ? -1 : 0)
     : motion === 'wave' ? Math.sin(frame / 9) * 1.5
-      : motion === 'gesture' ? Math.sin(frame / 18) * 0.6 : 0;
+      : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
+        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
   ctx.translate(px - 4, py - 11 + bob);
   ctx.scale(isPlayer ? 1.12 : 1, isPlayer ? 1.12 : 1);
   const r = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -4191,7 +4193,15 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(3, 16, 2, 3, '#e8cb8d');
   }
 
-  if (motion === 'wave' || motion === 'gesture') {
+  if (motion === 'research' && role === 'professor') {
+    const page = Math.floor(frame / 28) % 2;
+    r(11, 13, 4, 6, '#6d8f99');
+    r(12, 14, 3, 4, '#f8f2df');
+    r(13 + page, 15, 1, 2, '#7eb5ae');
+    r(12, 12, 2, 3, palette.coat);
+    r(13, 10, 2, 3, skin);
+    if (Math.floor(frame / 42) % 3 === 0) r(15, 9, 1, 1, '#f2d47e');
+  } else if (motion === 'wave' || motion === 'gesture') {
     const wave = motion === 'wave' ? Math.round(Math.sin(frame / 4) * 2) : Math.round(Math.sin(frame / 8) * 1);
     r(12, 12 - wave, 2, 4, palette.coat);
     r(13, 9 - wave, 2, 4, skin);
@@ -4358,7 +4368,7 @@ function drawRoom() {
     ctx.fillStyle = '#f8edc8'; ctx.fillRect(171, 27, 8, 13);
     ctx.fillStyle = '#83b8bd'; ctx.fillRect(183, 26, 13, 15);
     ctx.fillStyle = '#e6c879'; ctx.fillRect(201, 27, 12, 14);
-    text('LUNARO FIELD LAB', 106, 51, '#526b69', 6);
+    text('MELLORA FIELD LAB', 106, 51, '#526b69', 6);
 
     ctx.fillStyle = '#9c7658'; ctx.fillRect(13, 73, 72, 12);
     ctx.fillStyle = '#e6c38c'; ctx.fillRect(16, 70, 66, 7);
@@ -4422,8 +4432,61 @@ function drawRoom() {
     ctx.fillStyle = '#f4f2e7'; ctx.fillRect(250, 138, 56, 14);
     text('SPECIMENS', 258, 148, '#51717a', 6);
 
+    // Research-room details: a framed region map, specimen shelf, lab plaque,
+    // warm task lights and a floor runner give the lab a clear visual identity.
+    ctx.fillStyle = '#486e78'; ctx.fillRect(116, 4, 88, 12);
+    ctx.fillStyle = '#e8e0bf'; ctx.fillRect(119, 7, 82, 6);
+    ctx.fillStyle = '#4e7780'; ctx.fillRect(122, 8, 76, 1);
+    ctx.fillStyle = '#7bb3a4'; ctx.fillRect(125, 10, 13, 2);
+    ctx.fillStyle = '#d9b66f'; ctx.fillRect(143, 10, 9, 2);
+    ctx.fillStyle = '#8aaf9d'; ctx.fillRect(157, 10, 12, 2);
+    ctx.fillStyle = '#d9b66f'; ctx.fillRect(174, 10, 17, 2);
+
+    // Wall-mounted habitat map with small route pins.
+    ctx.fillStyle = '#6e8790'; ctx.fillRect(13, 60, 62, 31);
+    ctx.fillStyle = '#edf1dc'; ctx.fillRect(16, 63, 56, 25);
+    ctx.fillStyle = '#b9d9c8'; ctx.fillRect(19, 66, 50, 19);
+    ctx.fillStyle = '#78a98c'; ctx.fillRect(24, 69, 12, 7);
+    ctx.fillRect(43, 74, 17, 6);
+    ctx.fillStyle = '#d6a85f'; ctx.fillRect(31, 72, 3, 3);
+    ctx.fillRect(51, 69, 3, 3);
+    ctx.fillStyle = '#e58a7d'; ctx.fillRect(60, 78, 3, 3);
+
+    // Specimen shelf: four glass jars, labels and a tiny desk lamp.
+    ctx.fillStyle = '#805e4a'; ctx.fillRect(242, 91, 65, 5);
+    ctx.fillStyle = '#d6bd91'; ctx.fillRect(245, 88, 59, 3);
+    for (let i = 0; i < 4; i++) {
+      const bx = 247 + i * 14;
+      ctx.fillStyle = '#d9eee2'; ctx.fillRect(bx, 78, 8, 10);
+      ctx.fillStyle = ['#79b6a9','#e5c778','#91a9d3','#d58a83'][i];
+      ctx.fillRect(bx + 2, 81, 4, 5);
+      ctx.fillStyle = '#fff6d7'; ctx.fillRect(bx + 2, 77, 4, 2);
+    }
+    ctx.fillStyle = '#d8bd83'; ctx.fillRect(292, 69, 3, 9);
+    ctx.fillStyle = '#f7e5a5'; ctx.fillRect(288, 67, 11, 3);
+
+    // A soft runner and compass emblem mark the centre work area.
+    ctx.fillStyle = '#d1dfd1'; ctx.fillRect(108, 166, 104, 43);
+    ctx.fillStyle = '#a7c8b8'; ctx.fillRect(112, 170, 96, 35);
+    ctx.fillStyle = '#eaf0df'; ctx.fillRect(118, 174, 84, 27);
+    ctx.fillStyle = '#6eaaa0'; ctx.fillRect(157, 181, 7, 13);
+    ctx.fillStyle = '#e1bd70'; ctx.fillRect(153, 185, 15, 4);
+    ctx.fillStyle = '#f7e9bb'; ctx.fillRect(159, 178, 3, 19);
+
+    // Small alternating status lights and rising specimen bubbles.
+    const labPulse = Math.floor(frame / 12) % 2;
+    ctx.fillStyle = labPulse ? '#fff0a8' : '#8ed6c5';
+    ctx.fillRect(143, 24, 3, 3);
+    ctx.fillStyle = labPulse ? '#8ed6c5' : '#fff0a8';
+    ctx.fillRect(147, 24, 3, 3);
+    for (let i = 0; i < 3; i++) {
+      const bubbleY = 88 - ((frame / 8 + i * 5) % 10);
+      ctx.fillStyle = '#ffffffaa';
+      ctx.fillRect(107 + i * 43, bubbleY, 2, 2);
+    }
+
     drawPerson(8 * TS, 6 * TS, '#d96d78', 'down', 'mimi', 'wave');
-    drawPerson(11 * TS, 5 * TS, '#f5f0d8', 'down', 'professor', 'gesture');
+    drawPerson(11 * TS, 5 * TS, '#f5f0d8', 'down', 'professor', 'research');
     text('TESSA', 112, 99, '#8a4e61', 6);
     text('PROF. LOTUS', 172, 81, '#425f71', 6);
   } else {
