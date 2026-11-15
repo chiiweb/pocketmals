@@ -4850,6 +4850,8 @@ function drawWorld() {
       const role = n.id === 'mimi' ? 'mimi'
         : n.id === 'lumi' || n.id === 'lumi2' ? 'shy'
         : (n.meridian || n.boss) ? 'meridian'
+        : n.champion ? 'gymLeader'
+        : n.eliteFour ? 'gymLeader'
         : n.trainer ? 'trainer' : 'villager';
       drawPerson(n.x * TS, n.y * TS, n.c, 'down', role);
     }
