@@ -4099,9 +4099,13 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   }
   if (role === 'professor') {
     // Round spectacles, silver-streaked bob, and a gentle, confident expression.
-    r(4, 6, 4, 3, '#315d68'); r(9, 6, 4, 3, '#315d68');
-    r(5, 7, 2, 1, '#d7f2eb'); r(10, 7, 2, 1, '#d7f2eb');
-    r(8, 7, 1, 1, '#315d68');
+    // Rounded pixel spectacles: stepped corners keep the lenses circular at 1x.
+    r(4, 6, 3, 1, '#315d68'); r(3, 7, 1, 2, '#315d68');
+    r(4, 9, 3, 1, '#315d68'); r(7, 7, 1, 2, '#315d68');
+    r(9, 6, 3, 1, '#315d68'); r(8, 7, 1, 2, '#315d68');
+    r(9, 9, 3, 1, '#315d68'); r(12, 7, 1, 2, '#315d68');
+    r(7, 7, 2, 1, '#315d68');
+    r(5, 7, 1, 1, '#d7f2eb'); r(10, 7, 1, 1, '#d7f2eb');
     r(4, 6, 1, 1, palette.hair);
     r(12, 6, 1, 1, palette.hair);
     r(4, 10, 2, 1, '#e59a9b');
