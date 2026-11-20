@@ -6,8 +6,6 @@
     <meta name="theme-color" content="#172033">
     <meta name="description" content="Pocketmals — explore the Mellora region, befriend Pocketmals, and keep a save file that survives updates.">
     <title>Pocketmals</title>
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-    <link rel="preload" href="./pokemon-ds-font.ttf" as="font" type="font/ttf" crossorigin>
     <style>
       @font-face {
         font-family: "Pokemon DS";
@@ -717,7 +715,8 @@
       </header>
 
       <section class="game-stage" aria-label="Mellora">
-        <span class="lens" aria-hidden="true"></span>\n        <div id="boot-status" role="status" style="position:absolute;z-index:5;top:12px;left:50%;transform:translateX(-50%);padding:6px 10px;border-radius:6px;background:#172338;color:#fff;font:12px sans-serif;">loading game…</div>
+        <span class="lens" aria-hidden="true"></span>
+        <div id="boot-status" role="status" style="position:absolute;z-index:5;top:12px;left:50%;transform:translateX(-50%);padding:6px 10px;border-radius:6px;background:#172338;color:#fff;font:12px sans-serif;">loading game…</div>
         <div class="top-bezel">
           <canvas id="c" width="320" height="240" aria-label="Mellora top screen">
             Your browser does not support the canvas needed to play Mellora.
@@ -774,7 +773,20 @@
         <span>Move: arrows / W-S-D &nbsp; A/B/X/Y act &nbsp; Enter: Start &nbsp; Backspace: Select</span>
       </footer>
     </main>
-    <script>\n      window.addEventListener("error", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.message || "script failed to load"); }\n      });\n      window.addEventListener("unhandledrejection", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }\n      });\n    </script>
+    <script>
+      setTimeout(function () {
+        const box = document.getElementById("boot-status");
+        if (box && box.style.display !== "none" && box.textContent === "loading game…") box.textContent = "game is taking too long to start. refresh and check console.";
+      }, 12000);
+      window.addEventListener("error", function (event) {
+        const box = document.getElementById("boot-status");
+        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.message || "script failed to load"); }
+      });
+      window.addEventListener("unhandledrejection", function (event) {
+        const box = document.getElementById("boot-status");
+        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }
+      });
+    </script>
     <script type="module" src="./main.js"></script>
     <input id="save-import" type="file" accept="application/json,.json,.txt" hidden>
   </body>
