@@ -8,7 +8,6 @@
     <title>Pocketmals</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg">
     <link rel="preload" href="./pokemon-ds-font.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="./rosebud-game-defaults.css">
     <style>
       @font-face {
         font-family: "Pokemon DS";
@@ -775,8 +774,8 @@
         <span>Move: arrows / W-S-D &nbsp; A/B/X/Y act &nbsp; Enter: Start &nbsp; Backspace: Select</span>
       </footer>
     </main>
-    <script src="./rosebud-game-defaults.js" defer></script>
-    <script>\n      window.addEventListener("error", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.message || "script failed to load"); }\n      });\n      window.addEventListener("unhandledrejection", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }\n      });\n    </script>\n    <script type="module" src="./main.js"></script>
+    <script>\n      window.addEventListener("error", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.message || "script failed to load"); }\n      });\n      window.addEventListener("unhandledrejection", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }\n      });\n    </script>
+    <script type="module" src="./main.js"></script>
     <input id="save-import" type="file" accept="application/json,.json,.txt" hidden>
   </body>
 </html>
