@@ -6712,6 +6712,8 @@ handleMenuKey = function(key) {
 function loop() {
   update();
   render();
+  const bootStatus = document.getElementById('boot-status');
+  if (bootStatus) bootStatus.style.display = 'none';
   updateMusic();
   requestAnimationFrame(loop);
 }
