@@ -640,48 +640,71 @@
 
       @media (max-height: 650px) {
         .app {
-          height: auto;
-          min-height: 100dvh;
+          height: 100dvh;
+          min-height: 0;
+          padding: 2px 4px;
+          gap: 2px;
+          overflow: hidden;
         }
 
+        .masthead {
+          flex: 0 0 auto;
+          padding: 0 2px 2px;
+        }
+
+        .brand { display: none; }
+
         .game-stage {
-          flex: 0 0 540px;
+          flex: 1 1 0;
+          min-height: 0;
+          height: auto;
+          width: 100%;
+          padding: 2px 4px;
+          gap: 2px;
+          overflow: hidden;
         }
 
         .controls {
-          min-height: 68px;
+          flex: 0 0 auto;
+          min-height: 0;
+          padding: 0;
+          gap: 6px;
         }
 
         .pad {
-          width: 68px;
-          height: 68px;
+          width: 60px;
+          height: 60px;
           grid-template:
-            ". up ." 22px
-            "left center right" 22px
-            ". down ." 22px
-            / 22px 22px 22px;
+            ". up ." 18px
+            "left center right" 18px
+            ". down ." 18px
+            / 18px 18px 18px;
         }
 
-        .pad button,
-        .pad-center {
-          width: 22px;
-          height: 22px;
+        .pad button, .pad-center {
+          width: 18px;
+          height: 18px;
+          min-width: 18px;
+          min-height: 18px;
         }
 
-        .actions {
-          height: 68px;
-        }
-
+        .actions { width: 70px; height: 58px; }
         .actions button {
-          width: 34px;
-          min-width: 34px;
-          height: 34px;
-          min-height: 34px;
+          width: 30px; min-width: 30px;
+          height: 30px; min-height: 30px;
         }
+        .system-buttons { gap: 3px; }
+        .system-buttons button { min-width: 48px; min-height: 22px; font-size: 8px; }
+        .speaker-grille { height: 30px; width: 18px; }
+        .footer { flex: 0 0 auto; font-size: 9px; }
+        .sound-toggle { min-height: 24px; font-size: 9px; }
+      }
 
-        .speaker-grille {
-          height: 38px;
-        }
+      @media (max-width: 420px) {
+        .controls { gap: 4px; }
+        .speaker-grille { display: none; }
+        .system-buttons button { min-width: 40px; }
+        .actions { width: 64px; }
       }
     </style>
   </head>
@@ -695,7 +718,7 @@
       </header>
 
       <section class="game-stage" aria-label="Mellora">
-        <span class="lens" aria-hidden="true"></span>
+        <span class="lens" aria-hidden="true"></span>\n        <div id="boot-status" role="status" style="position:absolute;z-index:5;top:12px;left:50%;transform:translateX(-50%);padding:6px 10px;border-radius:6px;background:#172338;color:#fff;font:12px sans-serif;">loading game…</div>
         <div class="top-bezel">
           <canvas id="c" width="320" height="240" aria-label="Mellora top screen">
             Your browser does not support the canvas needed to play Mellora.
@@ -753,7 +776,7 @@
       </footer>
     </main>
     <script src="./rosebud-game-defaults.js" defer></script>
-    <script type="module" src="./main.js"></script>
+    <script>\n      window.addEventListener("error", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.message || "script failed to load"); }\n      });\n      window.addEventListener("unhandledrejection", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }\n      });\n    </script>\n    <script type="module" src="./main.js"></script>
     <input id="save-import" type="file" accept="application/json,.json,.txt" hidden>
   </body>
 </html>
