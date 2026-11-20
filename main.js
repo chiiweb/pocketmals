@@ -4117,7 +4117,9 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
 
   ctx.save();
   ctx.translate(8, 0);
-  ctx.scale(1.3, 1.4);
+  // Chibi head proportions: make the head clearly dominate the compact body.
+  // This is a redraw-scale adjustment to the pixel shapes, not image stretching.
+  ctx.scale(1.42, 1.52);
   ctx.translate(-8, 0);
 
   // hair/back silhouette first, then face
@@ -4213,6 +4215,10 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   ctx.restore();
 
   ctx.save();
+  // Keep the body short and compact beneath the enlarged head.
+  ctx.translate(8, 12);
+  ctx.scale(0.92, 0.88);
+  ctx.translate(-8, -12);
   ctx.translate(0, 3);
 
   // clothing: layered jacket, collar, cuffs and accessories
