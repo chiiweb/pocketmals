@@ -8,7 +8,6 @@
     <title>Pocketmals</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg">
     <link rel="preload" href="./pokemon-ds-font.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="./rosebud-game-defaults.css">
     <style>
       @font-face {
         font-family: "Pokemon DS";
@@ -776,7 +775,6 @@
         <span>Move: arrows / W-S-D &nbsp; A/B/X/Y act &nbsp; Enter: Start &nbsp; Backspace: Select</span>
       </footer>
     </main>
-    <script src="./rosebud-game-defaults.js" defer></script>
     <script>
       window.addEventListener("error", function (event) {
         const box = document.getElementById("boot-status");
@@ -786,7 +784,8 @@
         const box = document.getElementById("boot-status");
         if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }
       });
-    </script>\n    <script type="module" src="./main.js"></script>
+    </script>
+    <script type="module" src="./main.js"></script>
     <input id="save-import" type="file" accept="application/json,.json,.txt" hidden>
   </body>
 </html>
