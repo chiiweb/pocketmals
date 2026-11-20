@@ -718,7 +718,8 @@
       </header>
 
       <section class="game-stage" aria-label="Mellora">
-        <span class="lens" aria-hidden="true"></span>\n        <div id="boot-status" role="status" style="position:absolute;z-index:5;top:12px;left:50%;transform:translateX(-50%);padding:6px 10px;border-radius:6px;background:#172338;color:#fff;font:12px sans-serif;">loading game…</div>
+        <span class="lens" aria-hidden="true"></span>
+        <div id="boot-status" role="status" style="position:absolute;z-index:5;top:12px;left:50%;transform:translateX(-50%);padding:6px 10px;border-radius:6px;background:#172338;color:#fff;font:12px sans-serif;">loading game…</div>
         <div class="top-bezel">
           <canvas id="c" width="320" height="240" aria-label="Mellora top screen">
             Your browser does not support the canvas needed to play Mellora.
@@ -776,7 +777,16 @@
       </footer>
     </main>
     <script src="./rosebud-game-defaults.js" defer></script>
-    <script>\n      window.addEventListener("error", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.message || "script failed to load"); }\n      });\n      window.addEventListener("unhandledrejection", function (event) {\n        const box = document.getElementById("boot-status");\n        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }\n      });\n    </script>\n    <script type="module" src="./main.js"></script>
+    <script>
+      window.addEventListener("error", function (event) {
+        const box = document.getElementById("boot-status");
+        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.message || "script failed to load"); }
+      });
+      window.addEventListener("unhandledrejection", function (event) {
+        const box = document.getElementById("boot-status");
+        if (box) { box.style.display = "block"; box.textContent = "game error: " + (event.reason?.message || String(event.reason)); }
+      });
+    </script>\n    <script type="module" src="./main.js"></script>
     <input id="save-import" type="file" accept="application/json,.json,.txt" hidden>
   </body>
 </html>
