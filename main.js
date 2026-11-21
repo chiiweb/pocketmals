@@ -78,29 +78,32 @@ const gameStage = document.querySelector('.game-stage');
 const controlPanel = document.querySelector('.controls');
 const hinge = document.querySelector('.hinge');
 function fit() {
+  // Fit both 320x240 screens together without forcing a minimum that can crop.
   const styles = getComputedStyle(gameStage);
   const px = value => parseFloat(value) || 0;
-  const top = topBezel.getBoundingClientRect();
-  const bottom = bottomBezel.getBoundingClientRect();
-  const screenTop = canvas.getBoundingClientRect();
-  const screenBottom = lowerCanvas.getBoundingClientRect();
-  // Measure the shell chrome, then fit two exact 4:3 screens into the space left.
-  // Keep the two screens at the same integer-ish scale and never crop a screen.
+  const topBounds = topBezel.getBoundingClientRect();
+  const bottomBounds = bottomBezel.getBoundingClientRect();
+  const topScreen = canvas.getBoundingClientRect();
+  const bottomScreen = lowerCanvas.getBoundingClientRect();
   const horizontalChrome = px(styles.paddingLeft) + px(styles.paddingRight)
-    + (top.width - screenTop.width) + (bottom.width - screenBottom.width);
+    + Math.max(0, topBounds.width - topScreen.width)
+    + Math.max(0, bottomBounds.width - bottomScreen.width);
   const verticalChrome = px(styles.paddingTop) + px(styles.paddingBottom)
-    + (top.height - screenTop.height) + (bottom.height - screenBottom.height)
+    + Math.max(0, topBounds.height - topScreen.height)
+    + Math.max(0, bottomBounds.height - bottomScreen.height)
     + controlPanel.offsetHeight + hinge.offsetHeight + px(styles.rowGap) * 3;
-  const availableWidth = Math.max(0, gameStage.clientWidth - horizontalChrome);
-  const availableHeight = Math.max(0, gameStage.clientHeight - verticalChrome);
-  const scale = Math.max(0.25, Math.min(availableWidth / W, availableHeight / (H * 2)) * 0.985);
+  const availableWidth = Math.max(1, gameStage.clientWidth - horizontalChrome);
+  const availableHeight = Math.max(1, gameStage.clientHeight - verticalChrome);
+  const scale = Math.max(0.05, Math.min(availableWidth / W, availableHeight / (H * 2)));
   for (const screen of [canvas, lowerCanvas]) {
-    screen.style.width = `${W * scale}px`;
-    screen.style.height = `${H * scale}px`;
+    screen.style.width = Math.floor(W * scale) + 'px';
+    screen.style.height = Math.floor(H * scale) + 'px';
   }
 }
 addEventListener('resize', fit);
-const layoutObserver = new ResizeObserver(fit);\nlayoutObserver.observe(gameStage);\nlayoutObserver.observe(controlPanel);
+const layoutObserver = new ResizeObserver(fit);
+layoutObserver.observe(gameStage);
+layoutObserver.observe(controlPanel);
 fit();
 
 // ---------- Audio (original procedural chiptune, no external assets) ----------
