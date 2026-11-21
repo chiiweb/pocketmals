@@ -1791,24 +1791,44 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
       squash = motion === 'snuffle' && cycle < -0.5 ? 0.95 : 1;
       break;
   }
-  let lunge = 0;
+  let lunge = 0, attackLean = 0, attackLift = 0, attackSquash = 1;
   const action = side && B && B.action && B.action.side === side ? B.action : null;
   if (action) {
-    const progress = Math.min(1, (frame - action.started) / 16);
-    lunge = (side === 'me' ? 1 : -1) * Math.sin(progress * Math.PI) * 16;
-    lift -= Math.sin(progress * Math.PI) * 3;
-    squash = 0.94;
+    // 4-part move beat: anticipation, launch, contact, recovery.
+    const progress = Math.max(0, Math.min(1, (frame - action.started) / 18));
+    const wave = Math.sin(progress * Math.PI);
+    const impact = progress > 0.42 && progress < 0.72;
+    lunge = (side === 'me' ? 1 : -1) * wave * (impact ? 20 : 15);
+    attackLean = (side === 'me' ? -1 : 1) * wave * 0.12;
+    attackLift = -wave * (impact ? 5 : 2);
+    attackSquash = impact ? 0.86 : 0.96;
+    // Different motion weight for physical vs special move types.
+    if (['fire','water','electric','grass','ice','psychic','ghost','fairy','dragon'].includes(action.type)) {
+      attackLean *= 0.65;
+      attackLift -= wave * 1.2;
+    }
   }
-  ctx.fillStyle = `rgba(22, 34, 31, ${Math.max(0.12, 0.3 - Math.max(0, -lift) * 0.025)})`;
+  ctx.fillStyle = `rgba(22, 34, 31, ${Math.max(0.12, 0.3 - Math.max(0, -lift - attackLift) * 0.025)})`;
   ctx.beginPath();
   ctx.ellipse(x + width / 2, y + height - 1, width * 0.34 * shadow, height * 0.07 * shadow, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.save();
   ctx.translate(x + width / 2 + lunge, y + height);
-  ctx.rotate(lean);
-  ctx.scale(side === 'me' ? -1 : 1, squash);
-  ctx.drawImage(malSprite(name, pose, side === 'me' ? 'back' : 'front'), -width / 2, -height + lift, width, height);
+  ctx.rotate(lean + attackLean);
+  ctx.scale(side === 'me' ? -1 : 1, squash * attackSquash);
+  ctx.drawImage(malSprite(name, pose, side === 'me' ? 'back' : 'front'), -width / 2, -height + lift + attackLift, width, height);
   ctx.restore();
+  if (action && Math.sin((frame - action.started) * 0.9) > 0.65) {
+    const effectColors = { fire:'#ffb35e', water:'#9de9f6', electric:'#fff08a', grass:'#b4e47c', ice:'#d8f7ff', psychic:'#e4a8ff', ghost:'#c7b5ff', fairy:'#ffd2f0', dragon:'#b4a2ff', fighting:'#ff9b7e', rock:'#e1c79a', ground:'#d7b47b', steel:'#c7dce8', dark:'#9a91a8', poison:'#d4a0e8', flying:'#c2e8ff', bug:'#d4e69a', normal:'#fff1d0' };
+    const color=effectColors[action.type]||'#fff3ce';
+    ctx.save();
+    ctx.globalAlpha=0.8;
+    ctx.fillStyle=color;
+    const cx=x+width/2+(side==='me'?width*0.45:-width*0.45);
+    const cy=y+height*0.45+attackLift;
+    ctx.fillRect(cx-2,cy-7,4,2); ctx.fillRect(cx-1,cy-5,2,6); ctx.fillRect(cx-5,cy-2,10,2);
+    ctx.restore();
+  }
 }
 
 function drawMalball(g, x, y, radius = 8) {
