@@ -80,28 +80,27 @@ const hinge = document.querySelector('.hinge');
 function fit() {
   const styles = getComputedStyle(gameStage);
   const px = value => parseFloat(value) || 0;
-  const topBounds = topBezel.getBoundingClientRect();
-  const bottomBounds = bottomBezel.getBoundingClientRect();
-  const canvasBounds = canvas.getBoundingClientRect();
-  const lowerBounds = lowerCanvas.getBoundingClientRect();
-  const horizontalInsets = px(styles.paddingLeft) + px(styles.paddingRight)
-    + topBounds.width - canvasBounds.width
-    + bottomBounds.width - lowerBounds.width;
-  const verticalInsets = px(styles.paddingTop) + px(styles.paddingBottom)
-    + topBounds.height - canvasBounds.height
-    + bottomBounds.height - lowerBounds.height
+  const top = topBezel.getBoundingClientRect();
+  const bottom = bottomBezel.getBoundingClientRect();
+  const screenTop = canvas.getBoundingClientRect();
+  const screenBottom = lowerCanvas.getBoundingClientRect();
+  // Measure the shell chrome, then fit two exact 4:3 screens into the space left.
+  // Keep the two screens at the same integer-ish scale and never crop a screen.
+  const horizontalChrome = px(styles.paddingLeft) + px(styles.paddingRight)
+    + (top.width - screenTop.width) + (bottom.width - screenBottom.width);
+  const verticalChrome = px(styles.paddingTop) + px(styles.paddingBottom)
+    + (top.height - screenTop.height) + (bottom.height - screenBottom.height)
     + controlPanel.offsetHeight + hinge.offsetHeight + px(styles.rowGap) * 3;
-  const s = Math.min(
-    (gameStage.clientWidth - horizontalInsets) / W,
-    (gameStage.clientHeight - verticalInsets) / (H * 2),
-  ) * 0.98;
-  canvas.style.width = W * s + 'px';
-  canvas.style.height = H * s + 'px';
-  lowerCanvas.style.width = W * s + 'px';
-  lowerCanvas.style.height = H * s + 'px';
+  const availableWidth = Math.max(0, gameStage.clientWidth - horizontalChrome);
+  const availableHeight = Math.max(0, gameStage.clientHeight - verticalChrome);
+  const scale = Math.max(0.25, Math.min(availableWidth / W, availableHeight / (H * 2)) * 0.985);
+  for (const screen of [canvas, lowerCanvas]) {
+    screen.style.width = `${W * scale}px`;
+    screen.style.height = `${H * scale}px`;
+  }
 }
 addEventListener('resize', fit);
-new ResizeObserver(fit).observe(gameStage);
+const layoutObserver = new ResizeObserver(fit);\nlayoutObserver.observe(gameStage);\nlayoutObserver.observe(controlPanel);
 fit();
 
 // ---------- Audio (original procedural chiptune, no external assets) ----------
@@ -4064,10 +4063,15 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     ctx.imageSmoothingEnabled = false;
     // Assets may be one 48x72 pose or a two-frame 96x72 idle/walk strip.
     // Both are sampled at native pixel scale with nearest-neighbour rendering.
-    const sourceFrame = pixelSprite.naturalWidth >= 96 && walkingSprite ? Math.floor(frame / 6) % 2 : 0;
-    const sourceWidth = pixelSprite.naturalWidth >= 96 ? 48 : pixelSprite.naturalWidth;
     const sourceHeight = Math.min(72, pixelSprite.naturalHeight);
-    ctx.drawImage(pixelSprite, sourceFrame * 48, 0, sourceWidth, sourceHeight, px - 4, py - 8 + bob, 16, 24);
+    const frames = pixelSprite.naturalWidth >= 192 ? 4 : pixelSprite.naturalWidth >= 96 ? 2 : 1;
+    // Support 1-frame portraits, 2-frame walk strips and 4-frame directional walk cycles.
+    // Cycle only while walking; otherwise hold a calm idle pose.
+    const sourceFrame = walkingSprite && frames > 1 ? Math.floor(frame / 4) % frames : 0;
+    const sourceWidth = frames > 1 ? 48 : pixelSprite.naturalWidth;
+    const drawWidth = 18, drawHeight = 26;
+    ctx.drawImage(pixelSprite, sourceFrame * 48, 0, sourceWidth, sourceHeight,
+      Math.round(px - (drawWidth - 16) / 2 - 4), Math.round(py - 9 + bob), drawWidth, drawHeight);
     ctx.restore();
     return;
   }
@@ -4119,7 +4123,7 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   ctx.translate(8, 0);
   // Chibi head proportions: make the head clearly dominate the compact body.
   // This is a redraw-scale adjustment to the pixel shapes, not image stretching.
-  ctx.scale(1.42, 1.52);
+  ctx.scale(1.5, 1.58);
   ctx.translate(-8, 0);
 
   // hair/back silhouette first, then face
