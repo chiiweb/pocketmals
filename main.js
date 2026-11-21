@@ -4028,19 +4028,17 @@ function drawForestCanopies(firstRow, lastRow) {
 const HUMAN_SPRITE_ASSETS = Object.create(null);
 const HUMAN_SPRITE_ROLES = ['player', 'player-boy', 'player-girl', 'professor', 'mom', 'tessa', 'shy', 'mimi', 'nurse', 'gymLeader', 'trainer', 'meridian', 'villager', 'robot'];
 const HUMAN_SPRITE_DIRECTIONS = ['down', 'up', 'left', 'right'];
-
-// Optional 48x72 character sheets are loaded from original Pocketmals assets.
-// Missing files safely retain the detailed procedural fallback below.
+const HUMAN_SPRITE_DESIGN = {
+  player: 0, 'player-boy': 0, 'player-girl': 1, professor: 2, mom: 1,
+  tessa: 1, shy: 3, mimi: 1, nurse: 2, gymLeader: 3, trainer: 0,
+  meridian: 3, villager: 1, robot: 2
+};
 function loadHumanSpriteAssets() {
   if (typeof Image === 'undefined') return;
-  for (const role of HUMAN_SPRITE_ROLES) {
-    for (const direction of HUMAN_SPRITE_DIRECTIONS) {
-      const image = new Image();
-      image.onload = () => { HUMAN_SPRITE_ASSETS[`${role}:${direction}`] = image; };
-      image.onerror = () => {};
-      image.src = `./assets/sprites/humans/${role}-${direction}.png`;
-    }
-  }
+  const atlas = new Image();
+  atlas.onload = () => { HUMAN_SPRITE_ASSETS.atlas = atlas; };
+  atlas.onerror = () => { HUMAN_SPRITE_ASSETS.atlas = null; };
+  atlas.src = './assets/sprites/humans/sprite-atlas.svg';
 }
 loadHumanSpriteAssets();
 
@@ -4051,27 +4049,22 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
       : role === 'mimi' ? 'tessa'
         : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
   const spriteDirection = ['down', 'up', 'left', 'right'].includes(dir) ? dir : 'down';
-  const pixelSprite = HUMAN_SPRITE_ASSETS[`${spriteRole}:${spriteDirection}`];
-  if (pixelSprite?.complete && pixelSprite.naturalWidth > 0) {
+  const atlas = HUMAN_SPRITE_ASSETS.atlas;
+  if (atlas?.complete && atlas.naturalWidth >= 768) {
     const isPlayerSprite = ['player', 'player-boy', 'player-girl'].includes(spriteRole);
     const walkingSprite = (isPlayerSprite && moving) || motion === 'walk';
-    const bob = walkingSprite ? (Math.floor(frame / 6) % 2 ? -1 : 0)
-      : motion === 'wave' ? Math.sin(frame / 9) * 1.5
-        : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
-        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
+    const design = HUMAN_SPRITE_DESIGN[spriteRole] ?? 0;
+    const directionIndex = HUMAN_SPRITE_DIRECTIONS.indexOf(spriteDirection);
+    const frameIndex = walkingSprite ? Math.floor(frame / 5) % 4 : 0;
+    const sourceX = design * 192 + frameIndex * 48;
+    const sourceY = directionIndex * 72;
+    const bob = walkingSprite ? (frameIndex % 2 ? -1 : 0)
+      : motion === 'wave' ? Math.sin(frame / 9) * 1.3
+        : motion === 'gesture' ? Math.sin(frame / 18) * 0.5
+        : motion === 'research' ? Math.sin(frame / 22) * 0.35 : 0;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    // Assets may be one 48x72 pose or a two-frame 96x72 idle/walk strip.
-    // Both are sampled at native pixel scale with nearest-neighbour rendering.
-    const sourceHeight = Math.min(72, pixelSprite.naturalHeight);
-    const frames = pixelSprite.naturalWidth >= 192 ? 4 : pixelSprite.naturalWidth >= 96 ? 2 : 1;
-    // Support 1-frame portraits, 2-frame walk strips and 4-frame directional walk cycles.
-    // Cycle only while walking; otherwise hold a calm idle pose.
-    const sourceFrame = walkingSprite && frames > 1 ? Math.floor(frame / 4) % frames : 0;
-    const sourceWidth = frames > 1 ? 48 : pixelSprite.naturalWidth;
-    const drawWidth = 18, drawHeight = 26;
-    ctx.drawImage(pixelSprite, sourceFrame * 48, 0, sourceWidth, sourceHeight,
-      Math.round(px - (drawWidth - 16) / 2 - 4), Math.round(py - 9 + bob), drawWidth, drawHeight);
+    ctx.drawImage(atlas, sourceX, sourceY, 48, 72, Math.round(px - 4), Math.round(py - 9 + bob), 18, 27);
     ctx.restore();
     return;
   }
