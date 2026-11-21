@@ -6709,12 +6709,26 @@ handleMenuKey = function(key) {
 // A fainted Pocketmal can be restored with Revive from the field bag or in battle.
 // The summary and party actions are save-compatible: they only rearrange existing records.
 
-function loop() {
-  update();
-  render();
+let gameLoopStarted = false;
+function showGameFailure(error) {
   const bootStatus = document.getElementById('boot-status');
-  if (bootStatus) bootStatus.style.display = 'none';
-  updateMusic();
-  requestAnimationFrame(loop);
+  if (bootStatus) {
+    bootStatus.style.display = 'block';
+    bootStatus.textContent = 'game stopped: ' + (error && error.message ? error.message : String(error));
+  }
+  console.error('Pocketmals stopped after a game-loop error:', error);
+}
+function loop() {
+  try {
+    update();
+    render();
+    const bootStatus = document.getElementById('boot-status');
+    if (bootStatus) bootStatus.style.display = 'none';
+    updateMusic();
+    gameLoopStarted = true;
+    requestAnimationFrame(loop);
+  } catch (error) {
+    showGameFailure(error);
+  }
 }
 loop();
