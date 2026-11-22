@@ -1,7 +1,34 @@
-import { MALS, MAL_LIST, MOVES, ITEMS, TMS, MAPS, TYPE_COLORS, EVOLUTIONS, effectiveness, NAME_ALIASES, ABILITY_INFO, ABILITY_EFFECTS } from './data.js?v=20261122.2';
-import { music, MAL_CRY_PROFILES, musicLayers } from './audio-data.js?v=20261122.2';
+import { MALS, MAL_LIST, MOVES, ITEMS, TMS, MAPS, TYPE_COLORS, EVOLUTIONS, effectiveness, NAME_ALIASES, ABILITY_INFO, ABILITY_EFFECTS } from './data.js';
+import { music, MAL_CRY_PROFILES, musicLayers } from './audio-data.js';
 const STARTER_NAMES = ['Kangol', 'Bubbish', 'Lizrout'];
-const STARTER_PERSONALITIES = ['BOLD / BOUNCY', 'SOFT / CURIOUS', 'WATCHFUL / STEADY'];
+const STARTER_PROFILES = Object.freeze({
+  Kangol: {
+    personality: 'brave',
+    label: 'BRAVE',
+    cardTag: 'BRAVE  ATK +10%',
+    description: 'Kangol is fearless and eager to lead. Its brave nature strengthens Attack but makes it a little less quick.',
+    statText: 'ATTACK +10%  /  SPEED -10%',
+  },
+  Bubbish: {
+    personality: 'gentle',
+    label: 'GENTLE',
+    cardTag: 'GENTLE  DEF +10%',
+    description: 'Bubbish is patient, thoughtful, and kind. Its gentle nature improves Defence while it takes its time preparing a hit.',
+    statText: 'DEFENCE +10%  /  ATTACK -10%',
+  },
+  Lizrout: {
+    personality: 'curious',
+    label: 'CURIOUS',
+    cardTag: 'CURIOUS  SPD +10%',
+    description: 'Lizrout is alert and always investigating something new. Its curious nature improves Speed, though it is less sturdy.',
+    statText: 'SPEED +10%  /  DEFENCE -10%',
+  },
+});
+const PERSONALITY_MODIFIERS = Object.freeze({
+  brave: { atk: 1.10, spd: 0.90 },
+  gentle: { atk: 0.90, def: 1.10 },
+  curious: { def: 0.90, spd: 1.10 },
+});
 const RIVAL_STARTERS = {
   Kangol: 'Bubbish', Bubbish: 'Lizrout', Lizrout: 'Kangol',
   Seedkit: 'Cinderp', Cinderp: 'Ripplet', Ripplet: 'Seedkit',
@@ -156,7 +183,9 @@ function startAudio() {
 // These are generated locally with Web Audio; no copyrighted voice clips are used.
 
 
+let cryAnimation = null;
 function playMalCry(name, variant = 'normal') {
+  cryAnimation = { name, startedAt: frame, duration: variant === 'preview' ? 48 : 40, variant };
   if (!gameSettings.soundEffects || !AudioContextClass) return;
   startAudio();
   if (!actx) return;
@@ -240,6 +269,29 @@ function playMalCry(name, variant = 'normal') {
     }
   }
 }
+function drawCryIndicator(g, name, centerX, centerY, size) {
+  if (!cryAnimation || cryAnimation.name !== name) return;
+  const elapsed = frame - cryAnimation.startedAt;
+  if (elapsed < 0 || elapsed >= cryAnimation.duration) return;
+  const progress = elapsed / cryAnimation.duration;
+  const alpha = Math.max(0, 1 - progress);
+  g.save();
+  g.globalAlpha = alpha;
+  g.strokeStyle = '#fff1b7';
+  g.lineWidth = 1.35;
+  for (const side of [-1, 1]) {
+    const spread = size * (0.37 + progress * 0.19);
+    const radius = size * (0.13 + progress * 0.10);
+    g.beginPath();
+    g.arc(centerX + side * spread, centerY, radius, side < 0 ? -Math.PI / 2 : Math.PI / 2, side < 0 ? Math.PI / 2 : Math.PI * 1.5);
+    g.stroke();
+    g.beginPath();
+    g.arc(centerX + side * (spread + size * 0.11), centerY, radius * 0.72, side < 0 ? -Math.PI / 2 : Math.PI / 2, side < 0 ? Math.PI / 2 : Math.PI * 1.5);
+    g.stroke();
+  }
+  g.restore();
+}
+
 function playMusicTone(freq, dur, waveform, volume, when, steel = false) {
   if (!actx || muted || !freq) return;
   volume = (volume || 0.05) * 0.72;
@@ -636,9 +688,9 @@ trainerInput.addEventListener('keydown', (event) => {
 });
 
 // ---------- Mal helpers ----------
-function makeMal(name, lv) {
+function makeMal(name, lv, personality = null) {
   const sp = MALS[name];
-  const m = { name, nickname: '', lv, xp: 0, moves: sp.moves.slice(0, Math.min(sp.moves.length, 1 + Math.floor(lv / 4))), pp: {} };
+  const m = { name, nickname: '', lv, xp: 0, personality, moves: sp.moves.slice(0, Math.min(sp.moves.length, 1 + Math.floor(lv / 4))), pp: {} };
   ensureMovePP(m);
   calc(m);
   m.cur = m.maxhp;
@@ -647,10 +699,18 @@ function makeMal(name, lv) {
 const malName = (m) => m.nickname || m.name;
 function calc(m) {
   const sp = MALS[m.name];
+  const nature = PERSONALITY_MODIFIERS[m.personality] || {};
   m.maxhp = Math.floor((sp.hp * m.lv) / 25) + m.lv + 12;
-  m.atk = Math.floor((sp.atk * m.lv) / 30) + 6;
-  m.def = Math.floor((sp.def * m.lv) / 30) + 6;
-  m.spd = Math.floor((sp.spd * m.lv) / 30) + 6;
+  m.atk = Math.max(1, Math.floor((Math.floor((sp.atk * m.lv) / 30) + 6) * (nature.atk || 1)));
+  m.def = Math.max(1, Math.floor((Math.floor((sp.def * m.lv) / 30) + 6) * (nature.def || 1)));
+  m.spd = Math.max(1, Math.floor((Math.floor((sp.spd * m.lv) / 30) + 6) * (nature.spd || 1)));
+}
+function getBattleSpeed(mal) {
+  const ability = ABILITY_EFFECTS[MALS[mal.name]?.ability] || {};
+  let speed = mal.spd || 1;
+  if (ability.speedMultiplier) speed *= ability.speedMultiplier;
+  if (ability.lowHpSpeed && mal.cur <= mal.maxhp / 2) speed *= ability.lowHpSpeed;
+  return speed;
 }
 const xpNeed = (lv) => lv * lv * 6;
 
@@ -682,8 +742,8 @@ function loadMalSpriteSheet(name, view) {
   return image;
 }
 
-function malSprite(name, pose = 0, view = 'front') {
-  const cacheKey = `${name}:${pose}:${view}`;
+function malSprite(name, pose = 0, view = 'front', shiny = false) {
+  const cacheKey = `${name}:${pose}:${view}:${shiny ? 'shiny' : 'normal'}`;
   if (spriteCache[cacheKey]) return spriteCache[cacheKey];
   const species = MALS[name];
   if (!species) return document.createElement('canvas');
@@ -694,7 +754,10 @@ function malSprite(name, pose = 0, view = 'front') {
   const approvedSheet = null; // Use procedural fallback until real species sheets are committed.
   if (approvedSheet?.complete && approvedSheet.naturalWidth >= 48 && approvedSheet.naturalHeight >= 48) {
     const frameIndex = approvedSheet.naturalWidth >= 384 ? ((Math.floor(Number(pose) || 0) % 8) + 8) % 8 : 0;
+    g.save();
+    if (shiny) g.filter = 'hue-rotate(155deg) saturate(1.22) brightness(1.06)';
     g.drawImage(approvedSheet, frameIndex * 48, 0, 48, 48, 0, 0, 48, 48);
+    g.restore();
     return (spriteCache[cacheKey] = c);
   }
   const palettes = {
@@ -734,31 +797,39 @@ function malSprite(name, pose = 0, view = 'front') {
     Malittle: ['#534765', '#b4a0d4', '#302c41', '#f0d7b6'],
   };
   const [base, light, ink, accent] = speciesPalettes[name] || palettes[species.type] || ['#8b8b8b', '#ddd', '#333', '#fff'];
+  g.save();
+  if (shiny) g.filter = 'hue-rotate(155deg) saturate(1.22) brightness(1.06)';
   drawCreaturePixelArt(g, name, pose, view, { base, light, ink, accent });
+  g.restore();
   return (spriteCache[cacheKey] = c);
 }
 
-const MAL_FACE_STYLES = {
-  Kangol: 'brave', Bubbish: 'soft', Lizrout: 'curious',
-  Seedkit: 'curious', Leafox: 'gentle', Florion: 'dreamy',
+const MAL_FACE_STYLES = Object.freeze({
+  Seedkit: 'curious', Leafox: 'soft', Florion: 'dreamy',
   Cinderp: 'bold', Flamfox: 'bold', Blazion: 'fierce',
   Ripplet: 'sleepy', Wavepup: 'soft', Marinox: 'calm',
   Yapup: 'playful', Trailhound: 'brave', Bunnet: 'bright',
-  Pufflet: 'round', Skylit: 'bright', Sparkit: 'electric', Voltuff: 'electric',
+  Pufflet: 'round', Skylit: 'bright', Sparkit: 'curious', Voltuff: 'electric',
   Rocklit: 'sturdy', Cragmite: 'fierce', Mossit: 'sleepy',
-  Glimmit: 'mystic', Astrin: 'mystic', Mothcinder: 'bright', Pyrewing: 'bold',
-  Blobble: 'round', Floatide: 'calm', Bramblet: 'wary', Thornox: 'fierce',
-  Hushowl: 'sleepy', Kilnkit: 'playful', Ripfin: 'curious', Breezel: 'bright',
-  Wispurr: 'mysterious', Starfox: 'mystic', Gearbit: 'mechanical',
-  Latticebot: 'mechanical', Tuskvolt: 'fierce', Brackibud: 'curious',
-  Puglow: 'brave', Glacub: 'soft', Hauntide: 'mysterious', Duskrowl: 'sharp',
-  Ferrivine: 'sturdy', Drakindle: 'brave', Dunemole: 'sleepy', Faefern: 'dreamy',
-  Grainper: 'curious', Wheafield: 'gentle', Rascoon: 'mischief', Racrash: 'brave',
-  Jayble: 'playful', Jayquill: 'bright', Jaystream: 'sharp', Titone: 'sturdy',
-  Rockage: 'fierce', Flareroo: 'playful', Flaresupial: 'fierce',
-  Foamish: 'gentle', Jelluburst: 'dreamy', Thornko: 'wary', Branack: 'sturdy',
+  Glimmit: 'mystic', Astrin: 'mystic',
+  Mothcinder: 'bright', Pyrewing: 'bold',
+  Blobble: 'soft', Floatide: 'calm',
+  Bramblet: 'wary', Thornox: 'fierce', Hushowl: 'sleepy',
+  Kilnkit: 'playful', Ripfin: 'curious', Breezel: 'bright',
+  Wispurr: 'mysterious', Starfox: 'mystic',
+  Gearbit: 'mechanical', Latticebot: 'mechanical', Tuskvolt: 'fierce',
+  Brackibud: 'curious', Puglow: 'brave', Glacub: 'soft',
+  Hauntide: 'mysterious', Duskrowl: 'sharp', Ferrivine: 'sturdy',
+  Drakindle: 'brave', Dunemole: 'sleepy', Faefern: 'dreamy',
+  Grainper: 'curious', Wheafield: 'gentle',
+  Rascoon: 'mischief', Racrash: 'brave',
+  Jayble: 'playful', Jayquill: 'bright', Jaystream: 'sharp',
+  Titone: 'sturdy', Rockage: 'fierce',
+  Kangol: 'brave', Flareroo: 'playful', Flaresupial: 'fierce',
+  Bubbish: 'round', Foamish: 'gentle', Jelluburst: 'dreamy',
+  Lizrout: 'curious', Thornko: 'wary', Branack: 'sturdy',
   Lovlittle: 'dreamy', Malittle: 'mischief',
-};
+});
 
 function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
   const g = canvasContext;
@@ -796,35 +867,39 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       g.stroke();
     }
   };
-
-  const faceStyle = MAL_FACE_STYLES[name] || 'curious';
-  const blinkPhase = (pose + (MALS[name]?.id || 0) * 3) % 9;
+  const faceStyle = MAL_FACE_STYLES[name] || (
+    ['psychic', 'ghost', 'fairy'].includes(MALS[name]?.type) ? 'dreamy'
+      : ['fire', 'fighting', 'dark'].includes(MALS[name]?.type) ? 'bold'
+        : ['rock', 'steel', 'ground'].includes(MALS[name]?.type) ? 'sturdy'
+          : 'curious'
+  );
+  // Each species blinks on its own beat; its eye shape and highlights also match its temperament.
+  const facePhase = (Math.floor(Number(pose) || 0) + (MALS[name]?.id || 0) * 3) % 8;
   const eye = (x, y, iris = '#202b3a') => {
-    const blink = blinkPhase === 8;
-    if (blink) {
-      px(x, y + 1, faceStyle === 'round' || faceStyle === 'soft' ? 3 : 2, 1, ink);
+    if (facePhase === 7) {
+      px(x, y + 1, faceStyle === 'round' || faceStyle === 'dreamy' ? 3 : 2, 1, ink);
       return;
     }
-    if (['round', 'soft', 'gentle', 'dreamy', 'bright'].includes(faceStyle)) {
+    if (faceStyle === 'round' || faceStyle === 'soft' || faceStyle === 'gentle' || faceStyle === 'dreamy') {
       px(x, y, 3, 3, ink);
       px(x + 1, y + 1, 2, 2, iris);
       px(x + 1, y + 1, 1, 1, '#fff');
-      if (faceStyle === 'bright' && blinkPhase === 3) px(x + 2, y - 1, 1, 1, light);
+      if (faceStyle === 'dreamy' && facePhase === 3) px(x + 2, y - 1, 1, 1, '#fff4c7');
       return;
     }
-    if (['sleepy', 'calm'].includes(faceStyle)) {
+    if (faceStyle === 'sleepy' || faceStyle === 'calm') {
       px(x, y, 3, 2, ink);
       px(x + 1, y + 1, 1, 1, iris);
       return;
     }
-    if (['fierce', 'sharp', 'wary', 'sturdy'].includes(faceStyle)) {
+    if (faceStyle === 'sturdy' || faceStyle === 'fierce' || faceStyle === 'sharp' || faceStyle === 'wary') {
       px(x - 1, y, 3, 1, ink);
       px(x, y + 1, 2, 2, ink);
       px(x, y + 1, 1, 1, iris);
       if (faceStyle === 'fierce' || faceStyle === 'sharp') px(x - 1, y - 1, 3, 1, ink);
       return;
     }
-    if (['electric', 'mechanical'].includes(faceStyle)) {
+    if (faceStyle === 'mechanical' || faceStyle === 'electric') {
       px(x, y, 3, 3, ink);
       px(x + 1, y + 1, 2, 1, faceStyle === 'electric' ? '#fff0a0' : '#8ce6db');
       px(x + 1, y, 1, 1, '#fff');
@@ -838,7 +913,9 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     px(x, y, 2, 3, ink);
     px(x, y, 1, 2, iris);
     px(x, y, 1, 1, '#fff');
-    if (['brave', 'bold', 'playful'].includes(faceStyle) && blinkPhase === 2) px(x - 1, y - 1, 3, 1, ink);
+    if ((faceStyle === 'brave' || faceStyle === 'bold' || faceStyle === 'playful') && facePhase === 2) {
+      px(x - 1, y - 1, 3, 1, ink);
+    }
   };
   const face = (x = 12, y = 12, spacing = 5) => {
     if (view === 'back') {
@@ -1727,6 +1804,8 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
   const phase = frame / 5 + id * 1.73;
   const cycle = Math.sin(phase);
   const motion = MAL_MOTIONS[name] || 'sway';
+  const cryAge = cryAnimation?.name === name ? frame - cryAnimation.startedAt : -1;
+  const crying = cryAge >= 0 && cryAge < (cryAnimation?.duration || 0);
   let lift = 0, lean = 0, squash = 1, shadow = 1;
   switch (motion) {
     case 'float':
@@ -1773,7 +1852,13 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
       squash = motion === 'snuffle' && cycle < -0.5 ? 0.95 : 1;
       break;
   }
-  let lunge = 0, attackLean = 0, attackLift = 0, attackSquash = 1;
+  if (crying) {
+    const cryPulse = Math.sin((cryAge / Math.max(1, cryAnimation.duration)) * Math.PI);
+    lift -= cryPulse * 3.5;
+    squash *= 1 + cryPulse * 0.055;
+    lean += Math.sin(cryAge * 0.45) * 0.025;
+  }
+  let lunge = 0;
   const action = side && B && B.action && B.action.side === side ? B.action : null;
   if (action) {
     // 4-part move beat: anticipation, launch, contact, recovery.
@@ -1796,21 +1881,11 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
   ctx.fill();
   ctx.save();
   ctx.translate(x + width / 2 + lunge, y + height);
-  ctx.rotate(lean + attackLean);
-  ctx.scale(side === 'me' ? -1 : 1, squash * attackSquash);
-  ctx.drawImage(malSprite(name, pose, side === 'me' ? 'back' : 'front'), -width / 2, -height + lift + attackLift, width, height);
+  ctx.rotate(lean);
+  ctx.scale(1, squash);
+  ctx.drawImage(malSprite(name, pose, side === 'me' ? 'back' : 'front'), -width / 2, -height + lift, width, height);
   ctx.restore();
-  if (action && Math.sin((frame - action.started) * 0.9) > 0.65) {
-    const effectColors = { fire:'#ffb35e', water:'#9de9f6', electric:'#fff08a', grass:'#b4e47c', ice:'#d8f7ff', psychic:'#e4a8ff', ghost:'#c7b5ff', fairy:'#ffd2f0', dragon:'#b4a2ff', fighting:'#ff9b7e', rock:'#e1c79a', ground:'#d7b47b', steel:'#c7dce8', dark:'#9a91a8', poison:'#d4a0e8', flying:'#c2e8ff', bug:'#d4e69a', normal:'#fff1d0' };
-    const color=effectColors[action.type]||'#fff3ce';
-    ctx.save();
-    ctx.globalAlpha=0.8;
-    ctx.fillStyle=color;
-    const cx=x+width/2+(side==='me'?width*0.45:-width*0.45);
-    const cy=y+height*0.45+attackLift;
-    ctx.fillRect(cx-2,cy-7,4,2); ctx.fillRect(cx-1,cy-5,2,6); ctx.fillRect(cx-5,cy-2,10,2);
-    ctx.restore();
-  }
+  if (crying) drawCryIndicator(ctx, name, x + width / 2, y + height * 0.42 + lift, width * 0.72);
 }
 
 function drawMalball(g, x, y, radius = 8) {
@@ -2081,6 +2156,16 @@ function loadFromObject(loaded) {
   S.name = S.name || 'Trainer';
   S.look = S.look || (S.gender === 'girl' ? '#d9638c' : '#427fc0');
   if (S.flags.starter) S.flags.maldex = true;
+  if (S.flags.starter) {
+    const starterProfile = STARTER_PROFILES[S.flags.starter];
+    const starterMember = [...(S.party || []), ...(S.box || [])].find((member) => member?.name === S.flags.starter);
+    if (starterMember && !starterMember.personality && starterProfile) {
+      starterMember.personality = starterProfile.personality;
+      calc(starterMember);
+      starterMember.cur = Math.min(starterMember.cur ?? starterMember.maxhp, starterMember.maxhp);
+    }
+    S.flags.starterPersonality = starterMember?.personality || S.flags.starterPersonality || starterProfile?.personality || null;
+  }
   if (S.flags.starter) S.flags.runningShoes = true;
   for (const mal of [...S.party, ...S.box]) {
     if (!mal || typeof mal !== 'object' || typeof mal.name !== 'string') continue;
@@ -2426,12 +2511,15 @@ async function pip() {
     }
 
     const name = STARTER_NAMES[pick];
-    await addMal(makeMal(name, 5));
+    const starterProfile = STARTER_PROFILES[name];
+    const starter = makeMal(name, 5, starterProfile.personality);
+    await addMal(starter);
     starterReveal = { name, start: frame };
 
     const rivalStarter = RIVAL_STARTERS[name];
 
     S.flags.starter = name;
+    S.flags.starterPersonality = starterProfile.personality;
     S.flags.rivalStarter = rivalStarter;
     S.flags.runningShoes = true;
     S.bag.Malball = 5;
@@ -2442,7 +2530,7 @@ async function pip() {
     save();
 
     await sayAll([
-      `Professor Lotus: Excellent choice. ${name} looks ready to explore Mellora with you.`,
+      `Professor Lotus: Excellent choice. ${name} is ${starterProfile.personality}, and looks ready to explore Mellora with you.`,
       `Tessa: Then I'll choose ${rivalStarter}! I want to see how our partners grow together.`,
       'Professor Lotus: Your Maldex will record what you discover. I packed five Malballs and three Potions.',
       "Tessa: I will head for Route 1. Meet me out there — I want to compare notes!",
@@ -2857,6 +2945,24 @@ function menuLabel(g, label, x, y, color = '#eaf5ff', size = 10) {
   g.font = `bold ${Math.max(9, Math.round(size * 1.3))}px "Pixelify Sans", Arial, sans-serif`;
   g.fillText(label, x, y);
 }
+function drawMenuWrappedText(g, value, x, y, maxWidth, color = '#514637', size = 6, lineHeight = 10, maxLines = 4) {
+  const font = `bold ${Math.max(9, Math.round(size * 1.3))}px "Pokemon DS", Arial, sans-serif`;
+  g.font = font;
+  g.fillStyle = color;
+  const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && g.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else line = candidate;
+  }
+  if (line) lines.push(line);
+  lines.slice(0, maxLines).forEach((text, index) => g.fillText(text, x, y + index * lineHeight));
+  return lines.length;
+}
 function menuFrame(g, title) {
   g.fillStyle = '#101d31';
   g.fillRect(0, 0, 320, 240);
@@ -3141,26 +3247,22 @@ function drawGameMenu(g) {
         g.arc(276, 64, 17, 0, Math.PI * 2);
         g.fill();
         g.drawImage(malSprite(name, Math.floor(frame / 6) % 8, 'front', !!S.shinyCaught?.[name]), 260, 48, 32, 32);
+        drawCryIndicator(g, name, 276, 64, 34);
         menuLabel(g, `${species.types.map((type) => type.toUpperCase()).join('/')}  /  ${S.caught[name] ? 'CAUGHT' : S.evolved[name] ? 'EVOLVED' : 'SEEN'}`, 20, 69, '#665741', 7);
+        const descriptionLines = drawMenuWrappedText(g, species.dex, 20, 88, 216, '#514637', 6, 10, 4);
         if (!owned) {
-          menuLabel(g, 'catch this Pocketmal to reveal its', 20, 96, '#514637', 8);
-          menuLabel(g, 'complete research notes, stats, moves,', 20, 111, '#514637', 8);
-          menuLabel(g, 'ability, and evolution information.', 20, 126, '#514637', 8);
-          menuLabel(g, species.dex.slice(0, 38), 20, 151, '#665741', 7);
-          menuLabel(g, 'FIELD NOTES: INCOMPLETE', 20, 180, '#9a6f24', 8);
+          menuLabel(g, 'FIELD NOTES: INCOMPLETE', 20, 147, '#9a6f24', 8);
+          menuLabel(g, 'Catch this Pocketmal to unlock its', 20, 164, '#665741', 7);
+          menuLabel(g, 'ability details, stats, and evolution.', 20, 176, '#665741', 7);
         } else {
-          menuLabel(g, species.dex.slice(0, 43), 20, 87, '#514637', 7);
-          menuLabel(g, species.dex.slice(43, 86), 20, 98, '#514637', 7);
-          menuLabel(g, `BASE HP ${species.hp}  ATK ${species.atk}  DEF ${species.def}`, 20, 116, '#443727', 7);
-          menuLabel(g, `SPD ${species.spd}  ABILITY: ${species.ability.toUpperCase()}`, 20, 128, '#443727', 7);
-          const movesText = `MOVES: ${species.moves.map((move) => `${move} ${MOVES[move][0][0].toUpperCase()}${MOVES[move][1]}`).join(', ')}`;
-          menuLabel(g, movesText.slice(0, 44), 20, 143, '#514637', 7);
-          menuLabel(g, movesText.slice(44, 88), 20, 154, '#514637', 7);
+          const abilityY = Math.min(135, 91 + descriptionLines * 10 + 3);
+          menuLabel(g, `ABILITY: ${species.ability.toUpperCase()}`, 20, abilityY, '#8b6533', 7);
+          drawMenuWrappedText(g, ABILITY_INFO[species.ability] || 'No additional field notes are available.', 20, abilityY + 11, 216, '#514637', 6, 9, 2);
+          menuLabel(g, `HP ${species.hp}  ATK ${species.atk}  DEF ${species.def}  SPD ${species.spd}`, 20, 174, '#443727', 6);
           const ev = EVOLUTIONS[name];
-          if (ev?.to) menuLabel(g, `EVOLVES AT LV ${ev.level} INTO ${ev.to.toUpperCase()}`, 20, 172, '#39714b', 7);
-          else if (ev?.from) menuLabel(g, `EVOLVED FROM ${ev.from.toUpperCase()}`, 20, 172, '#39714b', 7);
-          else menuLabel(g, 'NO KNOWN EVOLUTION', 20, 172, '#665741', 7);
-          menuLabel(g, 'RESEARCH COMPLETE', 20, 188, '#39714b', 7);
+          if (ev?.to) menuLabel(g, `EVOLVES AT LV ${ev.level} INTO ${ev.to.toUpperCase()}`, 20, 191, '#39714b', 6);
+          else if (ev?.from) menuLabel(g, `EVOLVED FROM ${ev.from.toUpperCase()}`, 20, 191, '#39714b', 6);
+          else menuLabel(g, 'NO KNOWN EVOLUTION', 20, 191, '#665741', 6);
         }
       } else {
         menuLabel(g, 'UNDISCOVERED POCKETMAL', 30, 99, '#4f6b7a', 9);
@@ -3184,6 +3286,7 @@ function drawGameMenu(g) {
       g.arc(227, 82, 28, 0, Math.PI * 2);
       g.fill();
       g.drawImage(malSprite(name, Math.floor(frame / 6) % 8, 'front', !!S.shinyCaught?.[name]), 205, 60, 44, 44);
+      drawCryIndicator(g, name, 227, 82, 52);
       menuLabel(g, name.toUpperCase(), 160, 123, '#fff1b7', 8);
       menuLabel(g, `${species.types.map((type) => type.toUpperCase()).join('/')} / ${S.caught[name] ? 'CAUGHT' : S.evolved[name] ? 'EVOLVED' : 'SEEN'}`, 160, 138, '#b5d4e4', 7);
       if (S.caught[name] || S.evolved[name]) {
@@ -3665,7 +3768,7 @@ async function battle(foes, trainer) {
     const foeMove = availableFoeMoves.length
       ? availableFoeMoves[Math.floor(Math.random() * availableFoeMoves.length)]
       : 'Struggle';
-    const order = playerMove && playerActor.spd >= foeActor.spd ? ['me', 'foe'] : ['foe', 'me'];
+    const order = playerMove && getBattleSpeed(playerActor) >= getBattleSpeed(foeActor) ? ['me', 'foe'] : ['foe', 'me'];
     for (const who of order) {
       if (who === 'me' && playerMove) {
         await attack(playerActor, foeActor, playerMove, true);
@@ -3702,17 +3805,64 @@ async function attack(a, d, move, mine) {
     a.pp[move]--;
   }
   await say(`${mine ? '' : 'Foe '}${malName(a)} used ${move}!`);
-  if (Math.random() * 100 > acc) return say('It missed!');
+  const attackerSpecies = MALS[a.name];
+  const defenderSpecies = MALS[d.name];
+  const attackAbility = ABILITY_EFFECTS[attackerSpecies.ability] || {};
+  const defendAbility = ABILITY_EFFECTS[defenderSpecies.ability] || {};
+  B.abilityUses = B.abilityUses instanceof WeakSet ? B.abilityUses : new WeakSet();
+  let dodgeChance = defendAbility.dodgeChance || 0;
+  if (defendAbility.lowHpDodge && d.cur <= d.maxhp / 2) dodgeChance = defendAbility.lowHpDodge;
+  if (defendAbility.oncePerBattle && B.abilityUses.has(d)) dodgeChance = 0;
+  if (dodgeChance > 0) {
+    const avoided = Math.random() < dodgeChance;
+    if (defendAbility.oncePerBattle) B.abilityUses.add(d);
+    if (avoided) {
+      await say(`${malName(d)}'s ${defenderSpecies.ability} helped it avoid the move!`);
+      return;
+    }
+  }
+  if (!attackAbility.alwaysHit && Math.random() * 100 > acc) return say('It missed!');
   B.action = { side: mine ? 'me' : 'foe', type, started: frame };
   await new Promise((resolve) => setTimeout(resolve, 300));
   B.action = null;
-  const sp = MALS[a.name];
-  let stab = sp.types.includes(type) ? 1.5 : 1;
-  if (stab > 1 && a.cur < a.maxhp / 3) stab *= 1.3; // abilities boost own type at low HP
-  const eff = effectiveness(type, MALS[d.name].types);
+  const sp = attackerSpecies;
+  const stab = sp.types.includes(type) ? 1.5 : 1;
+  const typePower = attackAbility.typeBoost === type ? (attackAbility.typePower || 1) : 1;
+  const typeResistance = defendAbility.resistTypes?.includes(type) ? (defendAbility.resistMultiplier || 1) : 1;
+  const eff = effectiveness(type, defenderSpecies.types);
+  if (eff === 0) {
+    await say(`It doesn't affect ${malName(d)}...`);
+    return;
+  }
   const critical = Math.random() < 0.0625;
-  const dmg = Math.max(1, Math.floor(((2 * a.lv / 5 + 2) * pow * a.atk / d.def / 40 + 2) * stab * eff * (critical ? 1.5 : 1) * (0.85 + Math.random() * 0.15)));
+  const baseDamage = ((2 * a.lv / 5 + 2) * pow * a.atk / d.def / 40 + 2)
+    * stab * typePower * typeResistance * (defendAbility.damageMultiplier || 1)
+    * (critical ? 1.5 : 1) * (0.85 + Math.random() * 0.15);
+  let dmg = Math.max(1, Math.floor(baseDamage));
+  if (defendAbility.sturdy && d.cur === d.maxhp && dmg >= d.cur && !B.abilityUses.has(d)) {
+    dmg = Math.max(0, d.cur - 1);
+    B.abilityUses.add(d);
+    await say(`${malName(d)}'s Sturdy Shell kept it standing!`);
+  }
+  const hpBeforeHit = d.cur;
   d.cur = Math.max(0, d.cur - dmg);
+  if (attackAbility.bonusType === type && d.cur > 0 && Math.random() < attackAbility.bonusChance) {
+    const bonusDamage = Math.max(1, Math.floor(d.maxhp * (attackAbility.bonusDamage || 0.05)));
+    d.cur = Math.max(0, d.cur - bonusDamage);
+    await say(`${malName(a)}'s ${attackerSpecies.ability} added extra damage!`);
+  }
+  if (attackAbility.healOnHit && hpBeforeHit > d.cur) {
+    const healing = Math.max(1, Math.floor(a.maxhp * attackAbility.healOnHit));
+    const healed = Math.min(healing, a.maxhp - a.cur);
+    a.cur += healed;
+    if (healed > 0) await say(`${malName(a)} recovered a little HP with ${attackerSpecies.ability}!`);
+  }
+  if (attackAbility.healOnKnockout && d.cur <= 0) {
+    const healing = Math.max(1, Math.floor(a.maxhp * attackAbility.healOnKnockout));
+    const healed = Math.min(healing, a.maxhp - a.cur);
+    a.cur += healed;
+    if (healed > 0) await say(`${malName(a)} restored HP with ${attackerSpecies.ability}!`);
+  }
   B.shake = mine ? -8 : 8;
   sfx.hit();
   if (critical) await say('A critical hit!');
@@ -4102,6 +4252,50 @@ function loadHumanSpriteAssets() {
 }
 loadHumanSpriteAssets();
 
+function humanIsSpeaking(role) {
+  // Keep overworld NPCs expressionless like classic handheld RPG sprites.
+  // Only trainer characters get a tiny speaking-frame accent during battles.
+  if (mode !== 'battle' || ui?.kind !== 'say') return false;
+  if (!['trainer', 'meridian', 'gymLeader'].includes(role)) return false;
+  const line = String(ui.text || '');
+  const speakers = {
+    gymLeader: /Leader |Elite Four|Champion /i,
+    trainer: /Youngster |Schoolkid |Camper |Hiker |Trainer /i,
+    meridian: /Team Meridian|Grunt |Admin /i,
+  };
+  return !!speakers[role]?.test(line) && frame % 12 < 7;
+}
+function drawAtlasHumanGesture(g, x, y, role, direction, motion, speaking) {
+  // No blinking, eye changes, cheek marks, or mouths on overworld people.
+  // A tiny mouth movement is allowed only for a trainer speaking in battle.
+  if (speaking && direction !== 'up') {
+    g.save();
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = role === 'meridian' ? '#4f303c' : '#965f58';
+    g.fillRect(x + 8, y + 17, 2, 1);
+    g.restore();
+  }
+
+  // Keep visible body gestures separate from facial animation.
+  const wavePhase = Math.sin(frame / 4.2);
+  if (motion === 'wave') {
+    g.fillStyle = '#e9b48d';
+    g.fillRect(x + 14, y + 14 - Math.round(Math.max(0, wavePhase) * 3), 2, 4);
+    g.fillStyle = role === 'mimi' || role === 'tessa' ? '#c85d70' : '#4c7892';
+    g.fillRect(x + 13, y + 17 - Math.round(Math.max(0, wavePhase) * 3), 3, 2);
+  } else if (motion === 'research') {
+    g.fillStyle = '#f8f2df';
+    g.fillRect(x + 13, y + 17, 4, 5);
+    g.fillStyle = '#79a9a8';
+    g.fillRect(x + 14 + (Math.floor(frame / 20) % 2), y + 18, 2, 1);
+    g.fillStyle = '#df936f';
+    g.fillRect(x + 13, y + 15, 2, 2);
+  } else if (motion === 'gesture') {
+    g.fillStyle = '#e9b48d';
+    g.fillRect(x + 14 + Math.round(Math.sin(frame / 8)), y + 16, 3, 2);
+  }
+}
+
 function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const isMeridian = role === 'meridian';
   const spriteRole = isMeridian ? 'meridian'
@@ -4120,14 +4314,17 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     const frameIndex = walkingSprite ? Math.floor(frame / 5) % 4 : 0;
     const sourceX = design * 192 + frameIndex * 48;
     const sourceY = directionIndex * 72;
+    const speaking = humanIsSpeaking(role);
+    const idleBreath = Math.sin((frame + design * 19) / 23) * 0.45;
     const bob = walkingSprite ? (frameIndex % 2 ? -1 : 0)
       : motion === 'wave' ? Math.sin(frame / 9) * 1.3
-        : motion === 'gesture' ? Math.sin(frame / 18) * 0.5
-          : motion === 'research' ? Math.sin(frame / 22) * 0.35
-            : Math.sin(frame / 28 + px * 0.11 + py * 0.07) * 0.35;
+        : motion === 'gesture' ? Math.sin(frame / 18) * 0.7
+          : motion === 'research' ? Math.sin(frame / 22) * 0.45 : idleBreath;
+    const drawX = Math.round(px - 4), drawY = Math.round(py - 9 + bob);
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(atlas, sourceX, sourceY, 48, 72, Math.round(px - 4), Math.round(py - 9 + bob), 18, 27);
+    ctx.drawImage(atlas, sourceX, sourceY, 48, 72, drawX, drawY, 18, 27);
+    drawAtlasHumanGesture(ctx, drawX, drawY, spriteRole, spriteDirection, motion, speaking);
     ctx.restore();
     return;
   }
@@ -4151,11 +4348,12 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
 
   ctx.save();
   // A 16x24 character sprite is drawn with a 1px pixel grid and a little extra height.
+  const roleOffset = { player: 0, professor: 9, mom: 18, shy: 27, mimi: 36, nurse: 45, gymLeader: 54, trainer: 63, meridian: 72, robot: 81, villager: 90 }[role] || 0;
+  const breathing = Math.sin((frame + roleOffset) / 22) * 0.42;
   const bob = walking ? (Math.floor(frame / 6) % 2 ? -1 : 0)
     : motion === 'wave' ? Math.sin(frame / 9) * 1.5
-      : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
-        : motion === 'research' ? Math.sin(frame / 22) * 0.45
-        : Math.sin(frame / 28 + px * 0.11 + py * 0.07) * 0.4;
+      : motion === 'gesture' ? Math.sin(frame / 18) * 0.7
+        : motion === 'research' ? Math.sin(frame / 22) * 0.5 : breathing;
   ctx.translate(px - 4, py - 11 + bob);
   ctx.scale(isPlayer ? 1.12 : 1, isPlayer ? 1.12 : 1);
   const r = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -4242,14 +4440,18 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     }
   }
 
-  // Classic overworld NPC faces: fixed eyes only, no mouth or blush.
+  // Classic Pokémon-style overworld people use simple, fixed eyes and no visible mouth.
   r(4, 4, 8, 6, skin);
   r(3, 6, 2, 3, skin);
   r(11, 6, 2, 3, skin);
   if (dir !== 'up') {
-    const eyeX = dir === 'left' ? 5 : dir === 'right' ? 10 : 6;
-    r(eyeX, 7, 1, 2, '#2b3543');
-    r(dir === 'down' ? 9 : eyeX + 3, 7, 1, 2, '#2b3543');
+    const eyes = dir === 'left' ? [5, 9] : dir === 'right' ? [7, 11] : [5, 10];
+    for (const eyeX of eyes) {
+      r(eyeX, 7, 1, 2, '#2b3543');
+      r(eyeX, 7, 1, 1, '#fff7e9');
+    }
+    // Only battle trainer sprites may move their mouth while their dialogue is on screen.
+    if (humanIsSpeaking(role)) r(7, 11, 2, 1, '#965f58');
   }
   if (role === 'professor') {
     // Round spectacles, silver-streaked bob, and a gentle, confident expression.
@@ -4266,10 +4468,6 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(12, 3, 2, 1, '#eee8d8');
   } else if (role === 'shy') {
   } else if (role === 'mimi') {
-  } else if (role === 'robot') {
-    // Two bright square optics replace the ordinary human eyes.
-    r(4, 6, 3, 3, '#263b4b'); r(9, 6, 3, 3, '#263b4b');
-    r(5, 7, 1, 1, '#ffe17d'); r(10, 7, 1, 1, '#ffe17d');
   }
 
   ctx.restore();
@@ -4385,6 +4583,10 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(12, 12 - wave, 2, 4, palette.coat);
     r(13, 9 - wave, 2, 4, skin);
     r(12, 8 - wave, 3, 2, skin);
+    if (motion === 'wave') {
+      r(14, 7 - wave, 2, 2, skin);
+      r(13, 6 - wave, 1, 2, '#f7d5b3');
+    }
   } else if (walking) {
     r(2 - step, 13, 2, 5, palette.coat);
     r(12 + step, 13, 2, 5, palette.coat);
@@ -4825,17 +5027,21 @@ function drawStarterSelection(g) {
     g.font = '8px "Pixelify Sans", Arial, sans-serif';
     g.fillText(`HP ${species.hp}  ATK ${species.atk}`, x + 11, y + 119);
     g.fillStyle = '#536b73';
-    g.font = '7px "Pixelify Sans", Arial, sans-serif';
-    g.fillText(STARTER_PERSONALITIES[index], x + 8, y + 132);
+    g.font = '7px "Pokemon DS", Arial, sans-serif';
+    g.fillText(STARTER_PROFILES[name].cardTag, x + 8, y + 132);
     drawMalball(g, x + 82, y + 132, 5);
   });
 
   g.fillStyle = '#314d60';
   g.fillRect(14, 192, 292, 1);
   g.fillStyle = '#536b73';
-  g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
-  g.fillText('UP / DOWN  SELECT PARTNER', 22, 208);
-  g.fillText('Z / ENTER  CONFIRM     X / ESC  BACK', 22, 222);
+  g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
+  const selectedStarter = STARTER_NAMES[ui.idx] || STARTER_NAMES[0];
+  const selectedProfile = STARTER_PROFILES[selectedStarter];
+  g.fillText(`${selectedStarter.toUpperCase()}  /  ${selectedProfile.label} NATURE`, 22, 204);
+  g.font = '7px "Pokemon DS", Arial, sans-serif';
+  g.fillText(selectedProfile.description.slice(0, 54), 22, 216);
+  g.fillText(selectedProfile.statText, 22, 228);
 }
 
 function drawLowerScreen() {
@@ -6490,6 +6696,7 @@ function drawPocketmalSummary(g) {
   g.fill();
   const bob = Math.sin(frame * 0.13) * 2;
   g.drawImage(malSprite(mal.name, Math.floor(frame / 6) % 8, 'front', !!mal.shiny), 39, 62 + bob, 58, 58);
+  drawCryIndicator(g, mal.name, 68, 91 + bob, 56);
   menuLabel(g, mal.shiny ? '★ SHINY' : 'PARTNER', 29, 143, mal.shiny ? '#ffe58b' : '#a8d2e4', 8);
   menuLabel(g, `No. ${String(species.id).padStart(3, '0')}`, 28, 159, '#d5e4f1', 7);
   menuPanel(g, 130, 41, 176, 132);

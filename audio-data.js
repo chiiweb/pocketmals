@@ -1,6 +1,6 @@
-// Original Pocketmals music patterns and synthesized creature cry profiles.
+// Pocketmals audio patterns and original synthesized species voices.
 
-// Kept separate from the game controller so the core script stays smaller.
+// Keeping these large data tables separate prevents them from bloating the game controller.
 
 export const music = {
   // Each location is one synchronized pattern with independent instrument lanes.

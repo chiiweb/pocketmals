@@ -257,6 +257,8 @@ const RAW = [
    'A mischievous shadow spirit with a jagged silhouette and a shining chest jewel. It is Lovlittle’s counterpart.', 'ghost'],
 ];
 
+
+
 const DEX_DESCRIPTIONS = Object.freeze({
   "Seedkit": "Seedkit naps in sunny clearings with its paws tucked beneath its leafy back. The tiny sprouts on its coat slowly turn to follow the warmest patch of light.",
   "Leafox": "Leafox marks familiar paths by brushing its broad tail against low branches. Other forest Pocketmals recognise the fresh green scent and follow it home.",
@@ -550,6 +552,7 @@ export const MAPS = {
 };
 
 
+// Ability descriptions and battle effects for the Mellora species roster.
 export const ABILITY_INFO = Object.freeze({
   Bloomguard: 'Grass-type moves used by this Pocketmal are 20% stronger.',
   Hearthfire: 'Fire-type moves used by this Pocketmal are 20% stronger.',
