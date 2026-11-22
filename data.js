@@ -480,3 +480,39 @@ export const MAPS = {
     exits: { down: ['starlit', 1] },
   },
 };
+
+
+// Ability descriptions and battle effects for the Mellora species roster.
+export const ABILITY_INFO = Object.freeze({
+  Bloomguard: 'Grass-type moves used by this Pocketmal are 20% stronger.',
+  Hearthfire: 'Fire-type moves used by this Pocketmal are 20% stronger.',
+  Raincoat: 'Water-type moves are 15% stronger, and Fire-type damage is reduced by 15%.',
+  Pluck: 'After knocking out an opponent, this Pocketmal restores 10% of its maximum HP.',
+  Tailwind: 'Its quick movement raises its effective battle Speed by 15%.',
+  'Static Fuzz': 'Electric-type moves have a 20% chance to add a small burst of static damage.',
+  'Sturdy Shell': 'Incoming damage is reduced by 10%. Once per battle, it can endure a fatal hit at full HP with 1 HP remaining.',
+  Starlit: 'Psychic-type moves are 15% stronger and restore 3% of maximum HP on a successful hit.',
+  Sporecoat: 'Bug-type moves have a 20% chance to add a small spore burst of damage.',
+  Steadfast: 'When its HP falls to half or lower, its effective Speed rises by 25%.',
+  'Snow Veil': 'A light frost has a 10% chance to help it avoid an incoming move.',
+  Driftveil: 'Once per battle, it has a 20% chance to fade away from an incoming move.',
+  'Keen Eye': 'Careful aim lets its moves ignore accuracy checks and never miss.',
+  'Sand Veil': 'When its HP is at half or lower, shifting sand gives it a 15% chance to avoid a move.',
+});
+
+export const ABILITY_EFFECTS = Object.freeze({
+  Bloomguard: { typeBoost: 'grass', typePower: 1.20 },
+  Hearthfire: { typeBoost: 'fire', typePower: 1.20 },
+  Raincoat: { typeBoost: 'water', typePower: 1.15, resistTypes: ['fire'], resistMultiplier: 0.85 },
+  Pluck: { healOnKnockout: 0.10 },
+  Tailwind: { speedMultiplier: 1.15 },
+  'Static Fuzz': { bonusType: 'electric', bonusChance: 0.20, bonusDamage: 0.08 },
+  'Sturdy Shell': { damageMultiplier: 0.90, sturdy: true },
+  Starlit: { typeBoost: 'psychic', typePower: 1.15, healOnHit: 0.03 },
+  Sporecoat: { bonusType: 'bug', bonusChance: 0.20, bonusDamage: 0.07 },
+  Steadfast: { lowHpSpeed: 1.25 },
+  'Snow Veil': { dodgeChance: 0.10 },
+  Driftveil: { dodgeChance: 0.20, oncePerBattle: true },
+  'Keen Eye': { alwaysHit: true },
+  'Sand Veil': { lowHpDodge: 0.15 },
+});
