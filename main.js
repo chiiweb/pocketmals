@@ -4087,14 +4087,11 @@ const HUMAN_SPRITE_ASSETS = Object.create(null);
 const HUMAN_SPRITE_ROLES = ['player', 'player-boy', 'player-girl', 'professor', 'mom', 'tessa', 'shy', 'mimi', 'nurse', 'gymLeader', 'trainer', 'meridian', 'villager', 'robot'];
 const HUMAN_SPRITE_DIRECTIONS = ['down', 'up', 'left', 'right'];
 const HUMAN_SPRITE_DESIGN = {
-  player: 0, 'player-boy': 0, 'player-girl': 1, professor: 2, mom: 1,
-  tessa: 1, shy: 3, mimi: 1, nurse: 2, gymLeader: 3, trainer: 0,
-  meridian: 3, villager: 1, robot: 2
+  player: 0,
   'player-boy': 0,
   'player-girl': 1,
   professor: 2,
-  mimi: 3,
-  tessa: 3
+  shy: 3
 };
 function loadHumanSpriteAssets() {
   if (typeof Image === 'undefined') return;
