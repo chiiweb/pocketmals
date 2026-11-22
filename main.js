@@ -734,8 +734,8 @@ function loadMalSpriteSheet(name, view) {
   return image;
 }
 
-function malSprite(name, pose = 0, view = 'front') {
-  const cacheKey = `${name}:${pose}:${view}`;
+function malSprite(name, pose = 0, view = 'front', shiny = false) {
+  const cacheKey = `${name}:${pose}:${view}:${shiny ? 'shiny' : 'normal'}`;
   if (spriteCache[cacheKey]) return spriteCache[cacheKey];
   const species = MALS[name];
   if (!species) return document.createElement('canvas');
@@ -746,7 +746,10 @@ function malSprite(name, pose = 0, view = 'front') {
   const approvedSheet = loadMalSpriteSheet(name, view);
   if (approvedSheet?.complete && approvedSheet.naturalWidth >= 48 && approvedSheet.naturalHeight >= 48) {
     const frameIndex = approvedSheet.naturalWidth >= 384 ? ((Math.floor(Number(pose) || 0) % 8) + 8) % 8 : 0;
+    g.save();
+    if (shiny) g.filter = 'hue-rotate(155deg) saturate(1.22) brightness(1.06)';
     g.drawImage(approvedSheet, frameIndex * 48, 0, 48, 48, 0, 0, 48, 48);
+    g.restore();
     return (spriteCache[cacheKey] = c);
   }
   const palettes = {
@@ -786,7 +789,10 @@ function malSprite(name, pose = 0, view = 'front') {
     Malittle: ['#534765', '#b4a0d4', '#302c41', '#f0d7b6'],
   };
   const [base, light, ink, accent] = speciesPalettes[name] || palettes[species.type] || ['#8b8b8b', '#ddd', '#333', '#fff'];
+  g.save();
+  if (shiny) g.filter = 'hue-rotate(155deg) saturate(1.22) brightness(1.06)';
   drawCreaturePixelArt(g, name, pose, view, { base, light, ink, accent });
+  g.restore();
   return (spriteCache[cacheKey] = c);
 }
 
@@ -3748,6 +3754,10 @@ async function attack(a, d, move, mine) {
   const typePower = attackAbility.typeBoost === type ? (attackAbility.typePower || 1) : 1;
   const typeResistance = defendAbility.resistTypes?.includes(type) ? (defendAbility.resistMultiplier || 1) : 1;
   const eff = effectiveness(type, defenderSpecies.types);
+  if (eff === 0) {
+    await say(`It doesn't affect ${malName(d)}...`);
+    return;
+  }
   const critical = Math.random() < 0.0625;
   const baseDamage = ((2 * a.lv / 5 + 2) * pow * a.atk / d.def / 40 + 2)
     * stab * typePower * typeResistance * (defendAbility.damageMultiplier || 1)
