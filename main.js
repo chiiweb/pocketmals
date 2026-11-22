@@ -218,15 +218,18 @@ function beep(freq, dur = 0.08, type = 'square', vol = 0.04, when = actx && actx
 function startAudio() {
   if (!AudioContextClass) return;
   try {
+    // Recover if a browser has closed an earlier context, and never let audio
+    // initialization prevent a menu action or battle from continuing.
     if (!actx || actx.state === 'closed') actx = new AudioContextClass();
     if (actx.state === 'suspended') {
       const resume = actx.resume();
       if (resume && typeof resume.catch === 'function') {
-        resume.catch((error) => console.warn('Pocketmals audio could not resume.', error));
+        resume.catch((error) => console.warn('Pocketmals audio could not resume; gameplay will continue.', error));
       }
     }
   } catch (error) {
-    console.warn('Pocketmals audio could not start.', error);
+    actx = null;
+    console.warn('Pocketmals audio is unavailable in this browser; gameplay will continue without sound.', error);
   }
 }
 
@@ -806,7 +809,11 @@ const spriteCache = {};
 const MAL_SPRITE_ASSETS = Object.create(null);
 function loadMalSpriteSheet(name, view) {
   const key = `${name}:${view}`;
-  if (Object.prototype.hasOwnProperty.call(MAL_SPRITE_ASSETS, key)) return MAL_SPRITE_ASSETS[key] || null;
+  // Remember both successful loads and 404s. Without a negative cache, a
+  // missing optional PNG is requested again every time its sprite is drawn.
+  if (Object.prototype.hasOwnProperty.call(MAL_SPRITE_ASSETS, key)) {
+    return MAL_SPRITE_ASSETS[key];
+  }
   if (typeof Image === 'undefined') return null;
   const image = new Image();
   MAL_SPRITE_ASSETS[key] = image;
@@ -814,11 +821,12 @@ function loadMalSpriteSheet(name, view) {
     for (const cachedKey of Object.keys(spriteCache)) {
       if (cachedKey.startsWith(`${name}:`)) delete spriteCache[cachedKey];
     }
+    // A shiny canvas is a colour-treated copy of the normal sprite. Discard it
+    // too, or it would keep showing procedural fallback art after the PNG loads.
     for (const cachedKey of Object.keys(shinySpriteCache)) {
       if (cachedKey.startsWith(`${name}:`)) delete shinySpriteCache[cachedKey];
     }
   };
-  // Keep a negative cache entry so an absent optional PNG is not requested every frame.
   image.onerror = () => { MAL_SPRITE_ASSETS[key] = false; };
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   image.src = `./assets/sprites/pocketmals/${slug}-${view}.png`;
@@ -3199,7 +3207,7 @@ function drawGameMenu(g) {
       g.fillStyle = '#3c5264';
       g.fillRect(284, y + 7, 15, 5);
       g.fillStyle = '#68ce8b';
-      g.fillRect(284, y + 7, 15 * hpRatio(mal), 5);
+      g.fillRect(284, y + 7, 15 * Math.max(0, Math.min(1, mal.cur / Math.max(1, mal.maxhp))), 5);
     });
     menuPanel(g, 12, 176, 294, 28);
     const lead = S.party[menuState.selection];
@@ -4228,7 +4236,8 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     const bob = walkingSprite ? (frameIndex % 2 ? -1 : 0)
       : motion === 'wave' ? Math.sin(frame / 9) * 1.3
         : motion === 'gesture' ? Math.sin(frame / 18) * 0.5
-        : motion === 'research' ? Math.sin(frame / 22) * 0.35 : 0;
+        : motion === 'research' ? Math.sin(frame / 22) * 0.35
+          : Math.sin(frame / 28 + px * 0.11 + py * 0.07) * 0.35;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(atlas, sourceX, sourceY, 48, 72, Math.round(px - 4), Math.round(py - 9 + bob), 18, 27);
@@ -4258,7 +4267,8 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const bob = walking ? (Math.floor(frame / 6) % 2 ? -1 : 0)
     : motion === 'wave' ? Math.sin(frame / 9) * 1.5
       : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
-        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
+        : motion === 'research' ? Math.sin(frame / 22) * 0.45
+        : Math.sin(frame / 28 + px * 0.11 + py * 0.07) * 0.4;
   ctx.translate(px - 4, py - 11 + bob);
   ctx.scale(isPlayer ? 1.12 : 1, isPlayer ? 1.12 : 1);
   const r = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -4321,6 +4331,13 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(10, 1, 3, 1, '#fff0cc');
     r(13, 7, 2, 2, '#c66c79');
     r(4, 5, 8, 1, '#f7e9d1');
+  } else if (role === 'robot') {
+    // Latticebot's caretaker has a hard-edged metal cowl and lit side modules.
+    p([[2,3],[4,0],[12,0],[15,4],[14,13],[11,16],[4,15],[1,11]], '#657d82', '#344958');
+    r(2, 6, 2, 5, '#f1cc66');
+    r(13, 6, 2, 5, '#f1cc66');
+    r(4, 2, 8, 2, '#bdd1ce');
+    r(6, 1, 4, 1, '#e7f3ed');
   } else if (isPlayer) {
     p([[2,3],[4,0],[11,0],[14,3],[13,6],[3,6]], '#344b67');
     r(3, 1, 9, 2, color);
@@ -4374,6 +4391,11 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(5, 10, 2, 1, '#e9949d');
     r(9, 10, 2, 1, '#e9949d');
     r(7, 11, 3, 1, '#9a555e');
+  } else if (role === 'robot') {
+    // Two bright square optics replace the ordinary human eyes.
+    r(4, 6, 3, 3, '#263b4b'); r(9, 6, 3, 3, '#263b4b');
+    r(5, 7, 1, 1, '#ffe17d'); r(10, 7, 1, 1, '#ffe17d');
+    r(7, 10, 3, 1, '#526b78');
   }
 
   ctx.restore();
@@ -4452,6 +4474,28 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(5, 11, 7, 2, '#fff0c0');
     r(10, 14, 3, 3, '#8d6eaa');
     r(3, 16, 2, 3, '#e8cb8d');
+  } else if (role === 'meridian') {
+    // Team Meridian uniform: dark field coat, gold centre stripe and crest.
+    p([[3,11],[5,10],[11,10],[13,12],[13,19],[3,19]], '#2a3550', '#151c2e');
+    r(7, 11, 2, 8, '#c9a227');
+    r(4, 12, 2, 3, '#f0d56a');
+    r(11, 12, 2, 3, '#f0d56a');
+    r(5, 17, 6, 1, '#71809a');
+  } else if (role === 'robot') {
+    // Segmented body plates, dark joints and a small status-light panel.
+    p([[3,11],[5,10],[11,10],[13,12],[13,19],[3,19]], '#758c9a', '#344958');
+    r(5, 12, 2, 5, '#b9d9d2');
+    r(9, 12, 2, 5, '#b9d9d2');
+    r(7, 13, 2, 4, '#344958');
+    r(7, 14, 1, 1, '#f1cc66');
+    r(8, 16, 1, 1, '#6dc7bd');
+    r(4, 18, 8, 1, '#41596a');
+  } else if (role === 'trainer') {
+    // A small pack and shoulder strap distinguish route trainers from townsfolk.
+    r(2, 12, 3, 6, '#9b624d');
+    r(3, 13, 2, 3, '#d9a16a');
+    r(5, 11, 1, 6, '#e5bd70');
+    r(11, 17, 2, 1, '#f2d48e');
   }
 
   if (motion === 'research' && role === 'professor') {
@@ -4791,7 +4835,7 @@ function drawBattleLower(g) {
     { mal: foe, x: 166, label: 'OPPONENT' },
   ];
   for (const card of cards) {
-    const m = card.mal, hp = hpRatio(m);
+    const m = card.mal, hp = Math.max(0, Math.min(1, m.cur / Math.max(1, m.maxhp)));
     g.fillStyle = '#e3e6d5'; g.fillRect(card.x, 39, 138, 39);
     g.strokeStyle = '#728982'; g.strokeRect(card.x + .5, 39.5, 137, 38);
     g.fillStyle = '#263d50'; g.font = 'bold 7px "Pokemon DS", Arial, sans-serif';
@@ -5273,7 +5317,7 @@ function hpBar(m, x, y, showXp = false) {
   ctx.strokeStyle = '#314d60';
   ctx.strokeRect(x + 0.5, y + 0.5, 119, boxH - 1);
   text(`${malName(m)}  Lv${m.lv}`, x + 5, y + 10, '#24384b');
-  const r = hpRatio(m);
+  const r = Math.max(0, Math.min(1, m.cur / Math.max(1, m.maxhp)));
   ctx.fillStyle = '#364451';
   ctx.fillRect(x + 5, y + 15, 108, 6);
   ctx.fillStyle = r > 0.5 ? '#60b96b' : r > 0.2 ? '#e8b943' : '#db6861';
@@ -5298,7 +5342,7 @@ function drawBattleStatus(mal, x, y, width, isPlayer = false) {
   text(malName(mal).toUpperCase().slice(0, 14), x + 7, y + 13, '#273c4a', 8);
   text(`Lv${mal.lv}`, x + width - 33, y + 13, '#273c4a', 7);
   ctx.fillStyle = '#475b62'; ctx.fillRect(x + 7, y + 19, width - 14, 6);
-  const ratio = hpRatio(mal);
+  const ratio = Math.max(0, Math.min(1, mal.cur / Math.max(1, mal.maxhp)));
   ctx.fillStyle = ratio > .5 ? '#62b673' : ratio > .2 ? '#e2b74b' : '#d86e63';
   ctx.fillRect(x + 8, y + 20, (width - 16) * ratio, 4);
   text('HP', x + 7, y + 34, '#52676b', 6);
