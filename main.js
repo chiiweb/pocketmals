@@ -4176,6 +4176,84 @@ function loadHumanSpriteAssets() {
 }
 loadHumanSpriteAssets();
 
+function humanIsSpeaking(role) {
+  if (ui?.kind !== 'say') return false;
+  const line = String(ui.text || '');
+  const speakers = {
+    professor: /Professor Lotus|Professor:/i,
+    mimi: /Tessa:/i,
+    mom: /Mom:/i,
+    shy: /Mira:/i,
+    gymLeader: /Leader |Elite Four|Champion /i,
+    trainer: /Youngster |Schoolkid |Camper |Hiker |Trainer /i,
+    meridian: /Team Meridian|Grunt |Admin /i,
+    nurse: /Nurse /i,
+  };
+  return !!speakers[role]?.test(line) && frame % 12 < 7;
+}
+function drawAtlasHumanExpression(g, x, y, role, direction, motion, speaking) {
+  if (direction === 'up') return;
+  const offsets = { 'player-boy': 7, 'player-girl': 29, professor: 51, mimi: 83, tessa: 83 };
+  const period = role === 'mimi' || role === 'tessa' ? 139 : role === 'professor' ? 181 : 157;
+  const phase = (frame + (offsets[role] || 11)) % period;
+  const blink = phase < 4 || (phase > period - 5 && phase < period - 1);
+  const skin = '#e9b48d';
+  const ink = role === 'professor' ? '#29394a' : '#283345';
+  const leftEye = direction === 'right' ? 8 : 5;
+  const rightEye = direction === 'left' ? 10 : 11;
+  g.save();
+  g.imageSmoothingEnabled = false;
+  if (blink) {
+    g.fillStyle = skin;
+    g.fillRect(x + leftEye, y + 12, 2, 1);
+    g.fillRect(x + rightEye, y + 12, 2, 1);
+    g.fillStyle = ink;
+    g.fillRect(x + leftEye, y + 13, 2, 1);
+    g.fillRect(x + rightEye, y + 13, 2, 1);
+  } else {
+    g.fillStyle = ink;
+    if (role === 'mimi' || role === 'tessa') {
+      g.fillRect(x + leftEye, y + 11, 2, 3);
+      g.fillRect(x + rightEye, y + 11, 2, 3);
+      g.fillStyle = '#fff7e8';
+      g.fillRect(x + leftEye, y + 11, 1, 1);
+      g.fillRect(x + rightEye, y + 11, 1, 1);
+    } else {
+      g.fillRect(x + leftEye, y + 12, 2, 2);
+      g.fillRect(x + rightEye, y + 12, 2, 2);
+      g.fillStyle = '#fff7e8';
+      g.fillRect(x + leftEye, y + 12, 1, 1);
+      g.fillRect(x + rightEye, y + 12, 1, 1);
+    }
+  }
+  if (role === 'mimi' || role === 'tessa') {
+    g.fillStyle = '#df9295';
+    g.fillRect(x + 4, y + 15, 2, 1);
+    g.fillRect(x + 13, y + 15, 2, 1);
+  }
+  g.fillStyle = role === 'professor' ? '#8e5b55' : role === 'mimi' || role === 'tessa' ? '#a44f60' : '#965f58';
+  g.fillRect(x + 8, y + 17, speaking ? 3 : 2, speaking ? 2 : 1);
+  g.restore();
+
+  const wavePhase = Math.sin(frame / 4.2);
+  if (motion === 'wave') {
+    g.fillStyle = skin;
+    g.fillRect(x + 14, y + 14 - Math.round(Math.max(0, wavePhase) * 3), 2, 4);
+    g.fillStyle = role === 'mimi' || role === 'tessa' ? '#c85d70' : '#4c7892';
+    g.fillRect(x + 13, y + 17 - Math.round(Math.max(0, wavePhase) * 3), 3, 2);
+  } else if (motion === 'research') {
+    g.fillStyle = '#f8f2df';
+    g.fillRect(x + 13, y + 17, 4, 5);
+    g.fillStyle = '#79a9a8';
+    g.fillRect(x + 14 + (Math.floor(frame / 20) % 2), y + 18, 2, 1);
+    g.fillStyle = '#df936f';
+    g.fillRect(x + 13, y + 15, 2, 2);
+  } else if (motion === 'gesture') {
+    g.fillStyle = skin;
+    g.fillRect(x + 14 + Math.round(Math.sin(frame / 8)), y + 16, 3, 2);
+  }
+}
+
 function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const isMeridian = role === 'meridian';
   const spriteRole = isMeridian ? 'meridian'
@@ -4194,13 +4272,17 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     const frameIndex = walkingSprite ? Math.floor(frame / 5) % 4 : 0;
     const sourceX = design * 192 + frameIndex * 48;
     const sourceY = directionIndex * 72;
+    const speaking = humanIsSpeaking(role);
+    const idleBreath = Math.sin((frame + design * 19) / 23) * 0.45;
     const bob = walkingSprite ? (frameIndex % 2 ? -1 : 0)
       : motion === 'wave' ? Math.sin(frame / 9) * 1.3
-        : motion === 'gesture' ? Math.sin(frame / 18) * 0.5
-        : motion === 'research' ? Math.sin(frame / 22) * 0.35 : 0;
+        : motion === 'gesture' ? Math.sin(frame / 18) * 0.7
+          : motion === 'research' ? Math.sin(frame / 22) * 0.45 : idleBreath;
+    const drawX = Math.round(px - 4), drawY = Math.round(py - 9 + bob);
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(atlas, sourceX, sourceY, 48, 72, Math.round(px - 4), Math.round(py - 9 + bob), 18, 27);
+    ctx.drawImage(atlas, sourceX, sourceY, 48, 72, drawX, drawY, 18, 27);
+    drawAtlasHumanExpression(ctx, drawX, drawY, spriteRole, spriteDirection, motion, speaking);
     ctx.restore();
     return;
   }
@@ -4224,10 +4306,12 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
 
   ctx.save();
   // A 16x24 character sprite is drawn with a 1px pixel grid and a little extra height.
+  const roleOffset = { player: 0, professor: 9, mom: 18, shy: 27, mimi: 36, nurse: 45, gymLeader: 54, trainer: 63, meridian: 72, robot: 81, villager: 90 }[role] || 0;
+  const breathing = Math.sin((frame + roleOffset) / 22) * 0.42;
   const bob = walking ? (Math.floor(frame / 6) % 2 ? -1 : 0)
     : motion === 'wave' ? Math.sin(frame / 9) * 1.5
-      : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
-        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
+      : motion === 'gesture' ? Math.sin(frame / 18) * 0.7
+        : motion === 'research' ? Math.sin(frame / 22) * 0.5 : breathing;
   ctx.translate(px - 4, py - 11 + bob);
   ctx.scale(isPlayer ? 1.12 : 1, isPlayer ? 1.12 : 1);
   const r = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -4307,17 +4391,46 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     }
   }
 
-  // face and expression
+  // Face expressions are authored per character rather than sharing one blank template.
   r(4, 4, 8, 6, skin);
   r(3, 6, 2, 3, skin);
   r(11, 6, 2, 3, skin);
+  const faceOffsets = { player: 5, professor: 19, mom: 31, shy: 43, mimi: 59, nurse: 71, gymLeader: 83, trainer: 97, meridian: 113, robot: 127, villager: 139 };
+  const faceOffset = faceOffsets[role] ?? (String(color).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 151);
+  const blinkPeriod = role === 'mimi' ? 131 : role === 'professor' ? 181 : 157;
+  const blinkCycle = (frame + faceOffset) % blinkPeriod;
+  const blinking = blinkCycle < 4 || (blinkCycle > blinkPeriod - 5);
+  const talking = humanIsSpeaking(role);
+  const gaze = Math.floor((frame + faceOffset) / 46) % 3 - 1;
+  const eyes = dir === 'left' ? [5, 9] : dir === 'right' ? [7, 11] : [5, 10];
   if (dir !== 'up') {
-    const eyeX = dir === 'left' ? 5 : dir === 'right' ? 10 : 6;
-    r(eyeX, 7, 1, 2, '#2b3543');
-    r(dir === 'down' ? 9 : eyeX + 3, 7, 1, 2, '#2b3543');
-    r(eyeX, 7, 1, 1, '#fff');
-    r(5, 9, 2, 1, '#d88e87');
-    r(9, 9, 2, 1, '#d88e87');
+    const eyeColor = role === 'robot' ? '#63e1d3' : role === 'meridian' ? '#211f2d' : '#2b3543';
+    const eyeHeight = role === 'shy' || role === 'gymLeader' || role === 'meridian' ? 1 : 2;
+    for (const eyeX of eyes) {
+      if (blinking) {
+        r(eyeX, 8, 2, 1, eyeColor);
+      } else {
+        r(eyeX, 7 + (role === 'shy' ? 1 : 0), 2, eyeHeight, eyeColor);
+        if (role !== 'robot' && role !== 'meridian' && role !== 'gymLeader') r(eyeX + 1 + gaze, 7, 1, 1, '#fff7e9');
+        else if (role === 'robot') r(eyeX, 7, 2, 1, '#d7fffa');
+      }
+    }
+    if (role === 'gymLeader' || role === 'meridian' || role === 'trainer') {
+      r(eyes[0] - 1, 6, 3, 1, palette.hair);
+      r(eyes[1] - 1, 6, 3, 1, palette.hair);
+    }
+    if (['mom', 'shy', 'mimi', 'nurse'].includes(role)) {
+      const blush = role === 'shy' ? '#e98f9d' : '#e7a0a0';
+      r(4, 10, 2, 1, blush);
+      r(10, 10, 2, 1, blush);
+    }
+    if (role === 'shy') r(6, 11, 4, 1, '#a66b78');
+    else if (role === 'mimi') r(6, 11, 4, 1, '#9a555e');
+    else if (role === 'professor' || role === 'mom' || role === 'nurse') r(7, 11, 3, 1, role === 'professor' ? '#8d5b55' : '#9a5b60');
+    else if (role === 'meridian') r(7, 11, 3, 1, '#5b3943');
+    else if (role === 'robot') r(7, 11, 3, 1, '#4aa89f');
+    else r(7, 11, talking ? 3 : 2, talking ? 2 : 1, '#955e58');
+    if (talking) r(7, 11, 3, 2, role === 'robot' ? '#235b62' : '#6f3845');
   }
   if (role === 'professor') {
     // Round spectacles, silver-streaked bob, and a gentle, confident expression.
@@ -4436,6 +4549,10 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(12, 12 - wave, 2, 4, palette.coat);
     r(13, 9 - wave, 2, 4, skin);
     r(12, 8 - wave, 3, 2, skin);
+    if (motion === 'wave') {
+      r(14, 7 - wave, 2, 2, skin);
+      r(13, 6 - wave, 1, 2, '#f7d5b3');
+    }
   } else if (walking) {
     r(2 - step, 13, 2, 5, palette.coat);
     r(12 + step, 13, 2, 5, palette.coat);
