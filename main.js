@@ -944,7 +944,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[10,8],[8,3],[10,5]], ink);
     poly([[14,8],[16,3],[14,5]], ink);
     if (view !== 'back') { eye(10, 10); eye(14, 10); }
-    for (const [x,y] of [[6,11],[17,11],[7,16],[16,16]]) 
+
   } else if (name === 'Blobble') {
     oval(12, 13, 8, 9, ink);
     oval(12, 13, 7, 8, base, null);
@@ -1065,7 +1065,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       poly([[14,15],[18,16],[14,17]], '#e7ac55', ink);
     }
     px(8, 20, 3, 2, ink); px(13, 20, 3, 2, ink);
-    if (flameWing) 
+
   } else if (name === 'Voltuff') {
     poly([[4,15],[5,10],[8,8],[15,9],[19,13],[18,18],[7,20]], ink);
     poly([[6,15],[7,11],[10,10],[15,11],[17,14],[16,18],[8,18]], base, null);
