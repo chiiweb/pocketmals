@@ -860,8 +860,8 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       px(x - 1, y + 5, 2, 1, ink);
     }
     if (['soft','gentle','dreamy','round'].includes(faceStyle)) {
-      px(x - 4, y + 4, 2, 1, '#e88f93);
-      px(x + 3, y + 4, 2, 1, '#e88f93);
+      px(x - 4, y + 4, 2, 1, '#e88f93');
+      px(x + 3, y + 4, 2, 1, '#e88f93');
     }
   };
   const legs = (xs, y = 17, color = base) => {
