@@ -796,6 +796,33 @@ function malSprite(name, pose = 0, view = 'front', shiny = false) {
   return (spriteCache[cacheKey] = c);
 }
 
+const MAL_FACE_STYLES = Object.freeze({
+  Seedkit: 'curious', Leafox: 'soft', Florion: 'dreamy',
+  Cinderp: 'bold', Flamfox: 'bold', Blazion: 'fierce',
+  Ripplet: 'sleepy', Wavepup: 'soft', Marinox: 'calm',
+  Yapup: 'playful', Trailhound: 'brave', Bunnet: 'bright',
+  Pufflet: 'round', Skylit: 'bright', Sparkit: 'curious', Voltuff: 'electric',
+  Rocklit: 'sturdy', Cragmite: 'fierce', Mossit: 'sleepy',
+  Glimmit: 'mystic', Astrin: 'mystic',
+  Mothcinder: 'bright', Pyrewing: 'bold',
+  Blobble: 'soft', Floatide: 'calm',
+  Bramblet: 'wary', Thornox: 'fierce', Hushowl: 'sleepy',
+  Kilnkit: 'playful', Ripfin: 'curious', Breezel: 'bright',
+  Wispurr: 'mysterious', Starfox: 'mystic',
+  Gearbit: 'mechanical', Latticebot: 'mechanical', Tuskvolt: 'fierce',
+  Brackibud: 'curious', Puglow: 'brave', Glacub: 'soft',
+  Hauntide: 'mysterious', Duskrowl: 'sharp', Ferrivine: 'sturdy',
+  Drakindle: 'brave', Dunemole: 'sleepy', Faefern: 'dreamy',
+  Grainper: 'curious', Wheafield: 'gentle',
+  Rascoon: 'mischief', Racrash: 'brave',
+  Jayble: 'playful', Jayquill: 'bright', Jaystream: 'sharp',
+  Titone: 'sturdy', Rockage: 'fierce',
+  Kangol: 'brave', Flareroo: 'playful', Flaresupial: 'fierce',
+  Bubbish: 'round', Foamish: 'gentle', Jelluburst: 'dreamy',
+  Lizrout: 'curious', Thornko: 'wary', Branack: 'sturdy',
+  Lovlittle: 'dreamy', Malittle: 'mischief',
+});
+
 function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
   const g = canvasContext;
   const { base, light, ink, accent } = colors;
@@ -832,14 +859,55 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       g.stroke();
     }
   };
+  const faceStyle = MAL_FACE_STYLES[name] || (
+    ['psychic', 'ghost', 'fairy'].includes(MALS[name]?.type) ? 'dreamy'
+      : ['fire', 'fighting', 'dark'].includes(MALS[name]?.type) ? 'bold'
+        : ['rock', 'steel', 'ground'].includes(MALS[name]?.type) ? 'sturdy'
+          : 'curious'
+  );
+  // Each species blinks on its own beat; its eye shape and highlights also match its temperament.
+  const facePhase = (Math.floor(Number(pose) || 0) + (MALS[name]?.id || 0) * 3) % 8;
   const eye = (x, y, iris = '#202b3a') => {
-    if (pose % 8 === 7) {
-      px(x, y + 1, 2, 1, ink);
+    if (facePhase === 7) {
+      px(x, y + 1, faceStyle === 'round' || faceStyle === 'dreamy' ? 3 : 2, 1, ink);
+      return;
+    }
+    if (faceStyle === 'round' || faceStyle === 'soft' || faceStyle === 'gentle' || faceStyle === 'dreamy') {
+      px(x, y, 3, 3, ink);
+      px(x + 1, y + 1, 2, 2, iris);
+      px(x + 1, y + 1, 1, 1, '#fff');
+      if (faceStyle === 'dreamy' && facePhase === 3) px(x + 2, y - 1, 1, 1, '#fff4c7');
+      return;
+    }
+    if (faceStyle === 'sleepy' || faceStyle === 'calm') {
+      px(x, y, 3, 2, ink);
+      px(x + 1, y + 1, 1, 1, iris);
+      return;
+    }
+    if (faceStyle === 'sturdy' || faceStyle === 'fierce' || faceStyle === 'sharp' || faceStyle === 'wary') {
+      px(x - 1, y, 3, 1, ink);
+      px(x, y + 1, 2, 2, ink);
+      px(x, y + 1, 1, 1, iris);
+      if (faceStyle === 'fierce' || faceStyle === 'sharp') px(x - 1, y - 1, 3, 1, ink);
+      return;
+    }
+    if (faceStyle === 'mechanical' || faceStyle === 'electric') {
+      px(x, y, 3, 3, ink);
+      px(x + 1, y + 1, 2, 1, faceStyle === 'electric' ? '#fff0a0' : '#8ce6db');
+      px(x + 1, y, 1, 1, '#fff');
+      return;
+    }
+    if (faceStyle === 'mischief' && x > 12) {
+      px(x, y + 1, 3, 1, ink);
+      px(x + 1, y, 1, 1, iris);
       return;
     }
     px(x, y, 2, 3, ink);
     px(x, y, 1, 2, iris);
     px(x, y, 1, 1, '#fff');
+    if ((faceStyle === 'brave' || faceStyle === 'bold' || faceStyle === 'playful') && facePhase === 2) {
+      px(x - 1, y - 1, 3, 1, ink);
+    }
   };
   const face = (x = 12, y = 12, spacing = 5) => {
     if (view === 'back') {
@@ -3740,10 +3808,13 @@ async function attack(a, d, move, mine) {
   let dodgeChance = defendAbility.dodgeChance || 0;
   if (defendAbility.lowHpDodge && d.cur <= d.maxhp / 2) dodgeChance = defendAbility.lowHpDodge;
   if (defendAbility.oncePerBattle && B.abilityUses[defenderAbilityKey]) dodgeChance = 0;
-  if (dodgeChance > 0 && Math.random() < dodgeChance) {
+  if (dodgeChance > 0) {
+    const avoided = Math.random() < dodgeChance;
     if (defendAbility.oncePerBattle) B.abilityUses[defenderAbilityKey] = true;
-    await say(`${malName(d)}'s ${defenderSpecies.ability} helped it avoid the move!`);
-    return;
+    if (avoided) {
+      await say(`${malName(d)}'s ${defenderSpecies.ability} helped it avoid the move!`);
+      return;
+    }
   }
   if (!attackAbility.alwaysHit && Math.random() * 100 > acc) return say('It missed!');
   B.action = { side: mine ? 'me' : 'foe', type, started: frame };
