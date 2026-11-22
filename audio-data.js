@@ -1,0 +1,172 @@
+// Pocketmals audio patterns and original synthesized species voices.
+
+// Keeping these large data tables separate prevents them from bloating the game controller.
+
+export const music = {
+  // Each location is one synchronized pattern with independent instrument lanes.
+  // The lanes can be muted or enabled without restarting the musical clock.
+  title: {
+    tempo: 0.155,
+    lead: [523,659,784,880,784,659,587,659,698,784,880,988,880,784,659,523],
+    harmony: [262,0,330,0,392,0,349,0,294,0,349,0,440,0,392,0],
+    bass: [131,131,165,165,147,147,196,196],
+    arp: [523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,523],
+    drums: ['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null],
+    summer: [0,784,0,659,0,587,0,659,0,784,0,880,0,784,0,659],
+  },
+  world: {
+    tempo: 0.175,
+    lead: [659,0,784,880,784,659,587,523,587,0,659,784,880,784,659,587],
+    harmony: [330,0,392,0,349,0,294,0,330,0,392,0,440,0,392,0],
+    bass: [131,0,165,0,147,0,175,0],
+    arp: [523,659,784,659,494,587,740,587,523,659,784,880,784,659,587,523],
+    drums: ['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null],
+    summer: [0,659,0,784,0,880,0,784,0,659,0,587,0,659,0,784],
+  },
+  route: {
+    tempo: 0.145,
+    lead: [587,659,784,0,880,784,659,587,523,587,659,784,988,880,784,659],
+    harmony: [294,0,330,0,392,0,440,0,262,0,294,0,349,0,392,0],
+    bass: [147,147,131,131,175,175,165,165],
+    arp: [587,659,784,880,784,659,587,659,523,587,698,784,880,784,698,587],
+    drums: ['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null],
+    summer: [0,784,659,0,880,0,784,0,659,0,587,659,0,784,0,880],
+  },
+  forest: {
+    tempo: 0.19,
+    lead: [440,523,659,587,523,392,440,523,587,659,784,659,587,523,440,392],
+    harmony: [220,0,262,0,330,0,294,0,262,0,220,0,294,0,262,0],
+    bass: [110,0,131,0,98,0,147,0],
+    arp: [440,523,659,784,659,523,392,523,440,587,698,784,698,587,523,440],
+    drums: [null,null,'hat',null,null,null,'hat',null,'kick',null,'hat',null,null,null,'hat',null],
+    summer: [0,659,0,784,0,880,0,784,0,659,0,587,0,659,0,523],
+  },
+  lab: {
+    tempo: 0.15,
+    lead: [784,0,659,784,880,0,988,880,784,0,659,784,1047,988,880,784],
+    harmony: [392,0,440,0,523,0,587,0,392,0,440,0,523,0,587,0],
+    bass: [131,131,196,196,147,147,175,175],
+    arp: [392,494,587,494,440,523,659,523,392,494,587,698,659,587,523,494],
+    drums: ['kick',null,null,null,'hat',null,null,null,'kick',null,null,null,'hat',null,null,null],
+    summer: [0,0,523,0,659,0,784,0,0,0,587,0,698,0,880,0],
+  },
+  center: {
+    tempo: 0.21,
+    lead: [523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,523],
+    harmony: [262,0,330,0,392,0,349,0,262,0,330,0,392,0,349,0],
+    bass: [131,131,147,147,110,110,165,165],
+    arp: [523,659,784,659,440,523,659,523,494,587,740,587,440,523,659,523],
+    drums: [null,null,null,null,'hat',null,null,null,null,null,null,null,'hat',null,null,null],
+    summer: [0,0,659,0,784,0,880,0,0,0,784,0,659,0,587,0],
+  },
+  gym: {
+    tempo: 0.132,
+    lead: [523,659,784,988,880,784,659,784,698,880,1047,1175,1047,988,880,784],
+    harmony: [262,0,392,0,440,0,392,0,349,0,440,0,523,0,440,0],
+    bass: [131,196,165,220,147,220,175,247],
+    arp: [523,659,784,988,587,698,880,1047,523,659,784,988,698,880,1047,1175],
+    drums: ['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare',null,'hat','hat'],
+    summer: [0,784,0,988,0,1047,0,988,0,880,0,784,0,880,0,1047],
+  },
+  battle: {
+    tempo: 0.122,
+    lead: [784,0,784,988,1047,988,784,659,698,0,698,880,988,880,698,659],
+    harmony: [392,0,494,0,523,0,392,0,349,0,440,0,494,0,349,0],
+    bass: [98,98,147,147,110,110,165,165],
+    arp: [392,494,587,494,349,440,523,440,392,494,587,698,659,587,523,440],
+    drums: ['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare',null,'hat','hat'],
+    summer: [0,880,0,1047,0,988,0,880,0,784,0,880,0,988,0,1047],
+  },
+};
+
+// Original destination themes: each area has its own melody, harmony and rhythm.
+music.covo = { tempo:0.188, lead:[392,494,587,659,587,494,440,392,440,494,587,784,659,587,494,440], harmony:[196,0,247,0,294,0,262,0,220,0,247,0,330,0,294,0], bass:[98,98,123,123,110,110,147,147], arp:[392,494,587,659,587,494,440,494,392,494,587,784,659,587,494,392], drums:['kick',null,null,'hat','snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null], summer:[0,587,0,659,0,784,0,659,0,587,0,494,0,587,0,659] };
+music.route1 = { tempo:0.142, lead:[587,659,784,880,784,659,587,494,523,587,659,784,880,784,659,587], harmony:[294,0,330,0,392,0,440,0,262,0,294,0,349,0,392,0], bass:[147,147,165,165,131,131,175,175], arp:[587,659,784,880,784,659,587,659,523,587,698,784,880,784,698,587], drums:['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat',null], summer:[0,784,0,880,0,988,0,880,0,784,0,659,0,784,0,880] };
+music.solara = { tempo:0.162, lead:[698,784,880,1047,988,880,784,698,659,784,880,988,1175,1047,880,784], harmony:[349,0,392,0,440,0,523,0,330,0,392,0,494,0,440,0], bass:[175,175,196,196,165,165,220,220], arp:[698,784,880,1047,880,784,698,784,659,784,988,1175,1047,988,880,784], drums:['kick',null,'hat','hat','snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat','hat'], summer:[0,880,0,1047,0,1175,0,1047,0,988,0,880,0,988,0,1047] };
+music.ombra = { tempo:0.205, lead:[330,392,440,523,494,440,392,330,294,330,392,440,523,494,392,349], harmony:[165,0,196,0,220,0,262,0,147,0,165,0,196,0,220,0], bass:[82,82,98,98,110,110,73,73], arp:[330,392,440,523,440,392,330,392,294,349,392,440,523,440,392,330], drums:[null,null,'hat',null,null,'hat',null,null,'kick',null,null,'hat',null,null,'hat',null], summer:[0,523,0,587,0,659,0,587,0,523,0,440,0,494,0,523] };
+music.altoRidge = { tempo:0.176, lead:[494,587,698,784,880,784,698,587,523,587,698,880,988,880,784,698], harmony:[247,0,294,0,349,0,392,0,262,0,294,0,349,0,440,0], bass:[123,123,147,147,131,131,175,175], arp:[494,587,698,880,784,698,587,698,523,587,698,880,988,880,784,698], drums:['kick',null,null,'hat',null,null,'snare',null,'kick',null,'hat',null,null,'hat','snare',null], summer:[0,784,0,880,0,988,0,1175,0,988,0,880,0,784,0,698] };
+music.opening = { tempo:0.235, lead:[392,494,587,784,698,587,494,392,440,523,659,784,880,784,659,523], harmony:[196,0,247,0,294,0,392,0,220,0,262,0,330,0,440,0], bass:[98,98,73,73,110,110,82,82], arp:[392,494,587,784,698,587,494,587,440,523,659,880,784,659,523,440], drums:[null,null,null,null,'hat',null,null,null,'kick',null,null,null,'snare',null,null,null], summer:[0,0,587,0,0,659,0,784,0,0,698,0,0,784,0,880] };
+music.league = { tempo:0.128, lead:[587,784,880,1175,1047,988,880,784,698,880,988,1319,1175,1047,988,880], harmony:[294,0,392,0,440,0,587,0,349,0,440,0,523,0,494,0], bass:[147,147,196,196,175,175,220,220], arp:[587,784,880,1175,1047,880,784,880,698,880,988,1319,1175,1047,988,880], drums:['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare','hat','snare',null], summer:[0,988,0,1175,0,1319,0,1568,0,1319,0,1175,0,1047,0,988] };
+
+export const MAL_CRY_PROFILES = {
+  Seedkit:  { pitch: 590, wave: 'triangle', cutoff: 3100, vibrato: 5.8, wobble: 5, air: 0.003, notes: [[0,0.92,1.24,0.13],[0.13,1.30,1.04,0.12],[0.27,1.08,0.82,0.17]] },
+  Cinderp:  { pitch: 315, wave: 'sawtooth', cutoff: 1750, vibrato: 4.2, wobble: 3, air: 0.004, notes: [[0,0.82,1.34,0.19],[0.16,1.42,1.12,0.17],[0.34,1.03,0.76,0.15]] },
+  Ripplet: { pitch: 455, wave: 'triangle', cutoff: 2300, vibrato: 6.4, wobble: 4, air: 0.006, notes: [[0,0.91,1.10,0.12],[0.12,1.15,0.92,0.14],[0.29,0.88,1.18,0.19]] },
+  Bramblet:{ pitch: 365, wave: 'square', cutoff: 1450, vibrato: 7.2, wobble: 2, air: 0.002, notes: [[0,1.12,0.92,0.11],[0.10,0.98,1.22,0.09],[0.21,1.18,0.78,0.20]] },
+  Mothcinder:{ pitch: 920, wave: 'triangle', cutoff: 4200, vibrato: 8.5, wobble: 8, air: 0.007, notes: [[0,1.04,1.34,0.09],[0.10,1.40,1.16,0.10],[0.22,1.24,1.56,0.09],[0.33,1.52,0.96,0.16]] },
+  Blobble:  { pitch: 405, wave: 'sine', cutoff: 1900, vibrato: 4.8, wobble: 9, air: 0.008, notes: [[0,1.28,0.78,0.24],[0.22,0.92,1.15,0.20]] },
+  Sparkit:    { pitch: 1080, wave: 'square', cutoff: 3700, vibrato: 9.5, wobble: 6, air: 0.003, notes: [[0,0.92,1.42,0.07],[0.09,1.35,0.90,0.08],[0.20,1.06,1.60,0.07],[0.31,1.48,1.08,0.10]] },
+  Tuskvolt:   { pitch: 235, wave: 'sawtooth', cutoff: 1350, vibrato: 3.2, wobble: 2, air: 0.004, notes: [[0,1.20,0.88,0.18],[0.18,0.94,1.08,0.16],[0.35,1.02,0.68,0.21]] },
+  Rocklit:   { pitch: 285, wave: 'triangle', cutoff: 1200, vibrato: 3.6, wobble: 2, air: 0.002, notes: [[0,0.92,0.78,0.22],[0.22,0.82,1.04,0.20]] },
+  Cragmite:  { pitch: 190, wave: 'square', cutoff: 1050, vibrato: 2.8, wobble: 3, air: 0.005, notes: [[0,1.22,0.86,0.18],[0.18,0.90,0.72,0.25]] },
+  Breezel:   { pitch: 760, wave: 'sine', cutoff: 3300, vibrato: 7.8, wobble: 10, air: 0.009, notes: [[0,0.84,1.28,0.16],[0.16,1.34,1.62,0.12],[0.29,1.55,1.12,0.17]] },
+  Pufflet:  { pitch: 700, wave: 'triangle', cutoff: 3000, vibrato: 6.8, wobble: 7, air: 0.008, notes: [[0,0.96,1.20,0.12],[0.13,1.18,1.42,0.13],[0.28,1.40,1.08,0.19]] },
+  Glimmit: { pitch: 1010, wave: 'sine', cutoff: 4100, vibrato: 8.8, wobble: 5, air: 0.003, notes: [[0,1.18,1.52,0.10],[0.12,1.48,1.18,0.11],[0.25,1.20,1.72,0.14]] },
+  Hushowl:   { pitch: 335, wave: 'sine', cutoff: 1600, vibrato: 3.9, wobble: 12, air: 0.005, notes: [[0,1.18,0.86,0.28],[0.30,0.92,0.72,0.25]] },
+  Yapup:   { pitch: 500, wave: 'triangle', cutoff: 2400, vibrato: 5.4, wobble: 4, air: 0.004, notes: [[0,1.10,1.38,0.12],[0.13,1.34,1.06,0.12],[0.27,1.02,0.84,0.14]] },
+  Bunnet: { pitch: 825, wave: 'square', cutoff: 2800, vibrato: 8.1, wobble: 3, air: 0.003, notes: [[0,1.00,1.28,0.08],[0.09,1.24,0.94,0.08],[0.19,0.92,1.40,0.12]] },
+  Mossit:   { pitch: 390, wave: 'triangle', cutoff: 1850, vibrato: 4.6, wobble: 6, air: 0.007, notes: [[0,0.94,1.08,0.20],[0.22,1.06,0.78,0.23]] },
+  Kilnkit:   { pitch: 625, wave: 'triangle', cutoff: 2900, vibrato: 6.2, wobble: 5, air: 0.004, notes: [[0,1.24,1.02,0.13],[0.14,1.00,0.78,0.19],[0.34,0.90,1.14,0.12]] },
+  Ripfin: { pitch: 565, wave: 'sine', cutoff: 2700, vibrato: 7.4, wobble: 11, air: 0.008, notes: [[0,0.84,1.14,0.13],[0.14,1.18,0.92,0.14],[0.30,0.90,1.30,0.17]] },
+  Gearbit:   { pitch: 475, wave: 'square', cutoff: 2150, vibrato: 5.5, wobble: 2, air: 0.002, notes: [[0,1.18,0.90,0.10],[0.12,0.94,1.26,0.10],[0.25,1.20,0.80,0.16]] },
+  Wispurr:   { pitch: 945, wave: 'sine', cutoff: 3900, vibrato: 6.6, wobble: 13, air: 0.007, notes: [[0,0.88,1.26,0.18],[0.18,1.30,1.62,0.13],[0.33,1.52,1.04,0.20]] },
+  Latticebot:   { pitch: 265, wave: 'square', cutoff: 1650, vibrato: 2.5, wobble: 1, air: 0.001, notes: [[0,1.00,1.00,0.09],[0.12,1.50,1.50,0.07],[0.23,0.75,0.75,0.13],[0.39,1.12,0.92,0.10]] },
+  Florion:  { pitch: 355, wave: 'sawtooth', cutoff: 1550, vibrato: 3.8, wobble: 5, air: 0.004, notes: [[0,0.78,1.04,0.22],[0.22,1.10,0.88,0.20],[0.44,0.92,0.72,0.20]] },
+  Blazion:  { pitch: 295, wave: 'sawtooth', cutoff: 1900, vibrato: 4.4, wobble: 4, air: 0.005, notes: [[0,0.78,1.34,0.23],[0.20,1.28,1.05,0.18],[0.39,1.08,0.72,0.22]] },
+  Marinox:  { pitch: 435, wave: 'triangle', cutoff: 2500, vibrato: 5.2, wobble: 9, air: 0.007, notes: [[0,0.82,1.12,0.22],[0.22,1.16,1.42,0.16],[0.40,1.35,0.88,0.22]] },
+  Thornox: { pitch: 310, wave: 'sawtooth', cutoff: 1400, vibrato: 3.4, wobble: 3, air: 0.003, notes: [[0,0.88,1.10,0.18],[0.18,1.05,0.78,0.22],[0.42,0.90,0.70,0.18]] },
+  Pyrewing: { pitch: 780, wave: 'triangle', cutoff: 3600, vibrato: 7.5, wobble: 9, air: 0.006, notes: [[0,1.10,1.40,0.10],[0.12,1.45,1.20,0.11],[0.26,1.28,1.58,0.12],[0.40,1.50,0.95,0.16]] },
+  Floatide:  { pitch: 380, wave: 'sine', cutoff: 1800, vibrato: 4.5, wobble: 10, air: 0.009, notes: [[0,1.20,0.85,0.26],[0.24,0.95,1.18,0.22]] },
+  Voltuff: { pitch: 990, wave: 'square', cutoff: 3400, vibrato: 8.8, wobble: 5, air: 0.002, notes: [[0,0.95,1.45,0.08],[0.10,1.40,1.00,0.09],[0.22,1.10,1.55,0.08],[0.33,1.50,1.12,0.12]] },
+  Astrin:  { pitch: 880, wave: 'sine', cutoff: 4000, vibrato: 7.2, wobble: 8, air: 0.005, notes: [[0,1.05,1.35,0.12],[0.14,1.40,1.10,0.13],[0.30,1.15,1.55,0.16]] },
+  Skylit:    { pitch: 650, wave: 'triangle', cutoff: 2900, vibrato: 6.0, wobble: 11, air: 0.008, notes: [[0,0.90,1.25,0.14],[0.15,1.28,1.48,0.14],[0.32,1.40,1.05,0.18]] },
+  Cragmite:  { pitch: 170, wave: 'square', cutoff: 980, vibrato: 2.4, wobble: 2, air: 0.004, notes: [[0,1.15,0.80,0.20],[0.20,0.85,0.68,0.28]] },
+  'Starfox': { pitch: 720, wave: 'sine', cutoff: 3500, vibrato: 6.8, wobble: 12, air: 0.006, notes: [[0,0.95,1.30,0.16],[0.18,1.35,1.55,0.14],[0.35,1.48,1.08,0.20]] },
+  Leafox: { pitch: 470, wave: 'triangle', cutoff: 2800, vibrato: 5.5, wobble: 5, air: 0.004, notes: [[0,0.95,1.18,0.14],[0.14,1.20,1.00,0.14],[0.30,1.05,0.85,0.16]] },
+  Flamfox: { pitch: 360, wave: 'sawtooth', cutoff: 2000, vibrato: 4.8, wobble: 4, air: 0.005, notes: [[0,0.88,1.30,0.16],[0.16,1.28,1.05,0.14],[0.34,1.10,0.80,0.18]] },
+  Wavepup: { pitch: 480, wave: 'triangle', cutoff: 2400, vibrato: 5.6, wobble: 8, air: 0.006, notes: [[0,0.90,1.15,0.14],[0.14,1.18,0.95,0.14],[0.32,1.05,1.25,0.16]] },
+  Trailhound: { pitch: 320, wave: 'triangle', cutoff: 1800, vibrato: 3.8, wobble: 3, air: 0.003, notes: [[0,1.05,0.90,0.16],[0.16,0.92,1.15,0.14],[0.34,1.00,0.78,0.18]] },
+  Grainper: { pitch: 890, wave: 'sine', cutoff: 3600, vibrato: 8.2, wobble: 7, air: 0.005, notes: [[0,1.08,1.52,0.08],[0.11,1.42,1.12,0.10],[0.25,1.16,1.68,0.14]] },
+  Wheafield: { pitch: 410, wave: 'triangle', cutoff: 2200, vibrato: 4.7, wobble: 8, air: 0.006, notes: [[0,0.86,1.08,0.19],[0.20,1.12,1.32,0.16],[0.38,1.28,0.82,0.21]] },
+  Rascoon: { pitch: 545, wave: 'triangle', cutoff: 2450, vibrato: 6.1, wobble: 4, air: 0.004, notes: [[0,0.92,1.28,0.12],[0.14,1.22,0.98,0.13],[0.30,1.02,0.76,0.17]] },
+  Racrash: { pitch: 255, wave: 'sawtooth', cutoff: 1500, vibrato: 3.4, wobble: 3, air: 0.004, notes: [[0,0.82,1.08,0.22],[0.20,1.10,0.92,0.18],[0.40,0.90,0.66,0.24]] },
+  Jayble: { pitch: 940, wave: 'triangle', cutoff: 3800, vibrato: 8.7, wobble: 5, air: 0.006, notes: [[0,1.12,1.55,0.07],[0.10,1.46,1.18,0.09],[0.23,1.20,1.72,0.12]] },
+  Jayquill: { pitch: 650, wave: 'sine', cutoff: 3200, vibrato: 6.4, wobble: 10, air: 0.008, notes: [[0,0.90,1.16,0.14],[0.16,1.20,1.48,0.12],[0.31,1.42,0.92,0.19]] },
+  Jaystream: { pitch: 520, wave: 'triangle', cutoff: 2800, vibrato: 5.8, wobble: 12, air: 0.009, notes: [[0,0.78,1.08,0.20],[0.20,1.12,1.42,0.16],[0.38,1.36,0.72,0.22]] },
+  Titone: { pitch: 275, wave: 'square', cutoff: 1350, vibrato: 3.0, wobble: 2, air: 0.002, notes: [[0,1.10,0.86,0.20],[0.21,0.88,1.02,0.16],[0.39,1.00,0.70,0.23]] },
+  Rockage: { pitch: 165, wave: 'sawtooth', cutoff: 950, vibrato: 2.2, wobble: 2, air: 0.004, notes: [[0,1.20,0.78,0.24],[0.24,0.82,0.68,0.27]] },
+  Kangol: { pitch: 635, wave: 'triangle', cutoff: 2850, vibrato: 6.3, wobble: 5, air: 0.004, notes: [[0,0.94,1.26,0.12],[0.14,1.28,1.02,0.13],[0.30,1.04,0.82,0.16]] },
+  Flareroo: { pitch: 390, wave: 'sawtooth', cutoff: 2050, vibrato: 4.7, wobble: 4, air: 0.005, notes: [[0,0.84,1.30,0.17],[0.17,1.30,1.08,0.15],[0.35,1.06,0.76,0.19]] },
+  Flaresupial: { pitch: 275, wave: 'sawtooth', cutoff: 1750, vibrato: 3.8, wobble: 3, air: 0.005, notes: [[0,0.78,1.28,0.22],[0.19,1.24,1.02,0.20],[0.39,1.02,0.70,0.23]] },
+  Bubbish: { pitch: 525, wave: 'sine', cutoff: 2550, vibrato: 6.8, wobble: 9, air: 0.008, notes: [[0,1.14,0.88,0.16],[0.17,0.90,1.20,0.17],[0.35,1.20,0.78,0.19]] },
+  Foamish: { pitch: 485, wave: 'triangle', cutoff: 2450, vibrato: 5.7, wobble: 10, air: 0.008, notes: [[0,0.88,1.14,0.17],[0.18,1.18,1.38,0.15],[0.37,1.28,0.84,0.19]] },
+  Jelluburst: { pitch: 345, wave: 'sine', cutoff: 2100, vibrato: 4.2, wobble: 13, air: 0.009, notes: [[0,0.80,1.10,0.24],[0.23,1.08,1.42,0.21],[0.45,1.34,0.74,0.24]] },
+  Lizrout: { pitch: 455, wave: 'triangle', cutoff: 2250, vibrato: 5.1, wobble: 4, air: 0.004, notes: [[0,1.12,1.26,0.12],[0.15,1.24,0.96,0.13],[0.31,0.98,0.80,0.16]] },
+  Thornko: { pitch: 330, wave: 'square', cutoff: 1650, vibrato: 3.7, wobble: 3, air: 0.003, notes: [[0,0.92,1.16,0.18],[0.19,1.14,0.90,0.19],[0.39,0.88,0.70,0.21]] },
+  Branack: { pitch: 180, wave: 'sawtooth', cutoff: 1120, vibrato: 2.6, wobble: 2, air: 0.004, notes: [[0,1.16,0.82,0.22],[0.23,0.86,0.68,0.26]] },
+  Lovlittle: { pitch: 1030, wave: 'sine', cutoff: 4300, vibrato: 9.0, wobble: 6, air: 0.007, notes: [[0,1.18,1.58,0.09],[0.12,1.50,1.18,0.11],[0.27,1.20,1.72,0.13]] },
+  Malittle: { pitch: 300, wave: 'square', cutoff: 1650, vibrato: 4.1, wobble: 12, air: 0.005, notes: [[0,0.86,1.10,0.20],[0.21,1.12,0.82,0.21],[0.43,0.78,0.68,0.23]] },
+
+  Brackibud: { pitch: 790, wave: 'triangle', cutoff: 3400, vibrato: 8.1, wobble: 6, air: 0.008, notes: [[0,1.08,1.42,0.08],[0.10,1.38,1.08,0.10],[0.24,1.12,1.58,0.12]] },
+  Puglow: { pitch: 285, wave: 'square', cutoff: 1500, vibrato: 3.6, wobble: 3, air: 0.003, notes: [[0,0.92,1.12,0.17],[0.18,1.16,0.88,0.18],[0.38,0.92,0.72,0.22]] },
+  Glacub: { pitch: 690, wave: 'sine', cutoff: 3300, vibrato: 7.2, wobble: 9, air: 0.009, notes: [[0,1.16,1.48,0.11],[0.13,1.42,1.08,0.13],[0.30,1.10,1.36,0.16]] },
+  Hauntide: { pitch: 425, wave: 'sine', cutoff: 2250, vibrato: 5.2, wobble: 15, air: 0.011, notes: [[0,0.82,1.18,0.23],[0.23,1.24,1.48,0.19],[0.46,1.40,0.76,0.23]] },
+  Duskrowl: { pitch: 360, wave: 'triangle', cutoff: 1750, vibrato: 3.1, wobble: 8, air: 0.004, notes: [[0,1.18,0.86,0.22],[0.22,0.90,1.08,0.19],[0.43,1.02,0.70,0.24]] },
+  Ferrivine: { pitch: 245, wave: 'square', cutoff: 1450, vibrato: 2.8, wobble: 2, air: 0.002, notes: [[0,1.04,0.84,0.18],[0.20,0.88,1.12,0.18],[0.40,1.10,0.76,0.22]] },
+  Drakindle: { pitch: 410, wave: 'sawtooth', cutoff: 2150, vibrato: 4.3, wobble: 5, air: 0.006, notes: [[0,0.86,1.28,0.18],[0.18,1.32,1.06,0.18],[0.39,1.10,0.72,0.23]] },
+  Dunemole: { pitch: 205, wave: 'triangle', cutoff: 1250, vibrato: 2.5, wobble: 3, air: 0.005, notes: [[0,1.18,0.82,0.23],[0.24,0.86,0.68,0.25]] },
+  Faefern: { pitch: 1040, wave: 'sine', cutoff: 4400, vibrato: 9.2, wobble: 8, air: 0.010, notes: [[0,1.12,1.52,0.09],[0.12,1.48,1.16,0.11],[0.27,1.20,1.72,0.14]] },
+};
+
+export const musicLayers = {
+  melody: true,
+  harmony: true,
+  bass: true,
+  arpeggio: true,
+  percussion: true,
+  walking: true,
+  seasonal: true,
+  counter: true,
+  chords: true,
+};
+
