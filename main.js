@@ -1,6 +1,34 @@
-import { MALS, MAL_LIST, MOVES, ITEMS, TMS, MAPS, TYPE_COLORS, EVOLUTIONS, effectiveness, NAME_ALIASES } from './data.js';
+import { MALS, MAL_LIST, MOVES, ITEMS, TMS, MAPS, TYPE_COLORS, EVOLUTIONS, effectiveness, NAME_ALIASES, ABILITY_INFO, ABILITY_EFFECTS } from './data.js';
+import { music, MAL_CRY_PROFILES, musicLayers } from './audio-data.js';
 const STARTER_NAMES = ['Kangol', 'Bubbish', 'Lizrout'];
-const STARTER_PERSONALITIES = ['BOLD / BOUNCY', 'SOFT / CURIOUS', 'WATCHFUL / STEADY'];
+const STARTER_PROFILES = Object.freeze({
+  Kangol: {
+    personality: 'brave',
+    label: 'BRAVE',
+    cardTag: 'BRAVE  ATK +10%',
+    description: 'Kangol is fearless and eager to lead. Its brave nature strengthens Attack but makes it a little less quick.',
+    statText: 'ATTACK +10%  /  SPEED -10%',
+  },
+  Bubbish: {
+    personality: 'gentle',
+    label: 'GENTLE',
+    cardTag: 'GENTLE  DEF +10%',
+    description: 'Bubbish is patient, thoughtful, and kind. Its gentle nature improves Defence while it takes its time preparing a hit.',
+    statText: 'DEFENCE +10%  /  ATTACK -10%',
+  },
+  Lizrout: {
+    personality: 'curious',
+    label: 'CURIOUS',
+    cardTag: 'CURIOUS  SPD +10%',
+    description: 'Lizrout is alert and always investigating something new. Its curious nature improves Speed, though it is less sturdy.',
+    statText: 'SPEED +10%  /  DEFENCE -10%',
+  },
+});
+const PERSONALITY_MODIFIERS = Object.freeze({
+  brave: { atk: 1.10, spd: 0.90 },
+  gentle: { atk: 0.90, def: 1.10 },
+  curious: { def: 0.90, spd: 1.10 },
+});
 const RIVAL_STARTERS = {
   Kangol: 'Bubbish', Bubbish: 'Lizrout', Lizrout: 'Kangol',
   Seedkit: 'Cinderp', Cinderp: 'Ripplet', Ripplet: 'Seedkit',
@@ -118,91 +146,7 @@ let musicTrack = '';
 let musicStep = 0;
 let nextMusicNote = 0;
 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-const music = {
-  // Each location is one synchronized pattern with independent instrument lanes.
-  // The lanes can be muted or enabled without restarting the musical clock.
-  title: {
-    tempo: 0.155,
-    lead: [523,659,784,880,784,659,587,659,698,784,880,988,880,784,659,523],
-    harmony: [262,0,330,0,392,0,349,0,294,0,349,0,440,0,392,0],
-    bass: [131,131,165,165,147,147,196,196],
-    arp: [523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,523],
-    drums: ['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null],
-    summer: [0,784,0,659,0,587,0,659,0,784,0,880,0,784,0,659],
-  },
-  world: {
-    tempo: 0.175,
-    lead: [659,0,784,880,784,659,587,523,587,0,659,784,880,784,659,587],
-    harmony: [330,0,392,0,349,0,294,0,330,0,392,0,440,0,392,0],
-    bass: [131,0,165,0,147,0,175,0],
-    arp: [523,659,784,659,494,587,740,587,523,659,784,880,784,659,587,523],
-    drums: ['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null],
-    summer: [0,659,0,784,0,880,0,784,0,659,0,587,0,659,0,784],
-  },
-  route: {
-    tempo: 0.145,
-    lead: [587,659,784,0,880,784,659,587,523,587,659,784,988,880,784,659],
-    harmony: [294,0,330,0,392,0,440,0,262,0,294,0,349,0,392,0],
-    bass: [147,147,131,131,175,175,165,165],
-    arp: [587,659,784,880,784,659,587,659,523,587,698,784,880,784,698,587],
-    drums: ['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null],
-    summer: [0,784,659,0,880,0,784,0,659,0,587,659,0,784,0,880],
-  },
-  forest: {
-    tempo: 0.19,
-    lead: [440,523,659,587,523,392,440,523,587,659,784,659,587,523,440,392],
-    harmony: [220,0,262,0,330,0,294,0,262,0,220,0,294,0,262,0],
-    bass: [110,0,131,0,98,0,147,0],
-    arp: [440,523,659,784,659,523,392,523,440,587,698,784,698,587,523,440],
-    drums: [null,null,'hat',null,null,null,'hat',null,'kick',null,'hat',null,null,null,'hat',null],
-    summer: [0,659,0,784,0,880,0,784,0,659,0,587,0,659,0,523],
-  },
-  lab: {
-    tempo: 0.15,
-    lead: [784,0,659,784,880,0,988,880,784,0,659,784,1047,988,880,784],
-    harmony: [392,0,440,0,523,0,587,0,392,0,440,0,523,0,587,0],
-    bass: [131,131,196,196,147,147,175,175],
-    arp: [392,494,587,494,440,523,659,523,392,494,587,698,659,587,523,494],
-    drums: ['kick',null,null,null,'hat',null,null,null,'kick',null,null,null,'hat',null,null,null],
-    summer: [0,0,523,0,659,0,784,0,0,0,587,0,698,0,880,0],
-  },
-  center: {
-    tempo: 0.21,
-    lead: [523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,523],
-    harmony: [262,0,330,0,392,0,349,0,262,0,330,0,392,0,349,0],
-    bass: [131,131,147,147,110,110,165,165],
-    arp: [523,659,784,659,440,523,659,523,494,587,740,587,440,523,659,523],
-    drums: [null,null,null,null,'hat',null,null,null,null,null,null,null,'hat',null,null,null],
-    summer: [0,0,659,0,784,0,880,0,0,0,784,0,659,0,587,0],
-  },
-  gym: {
-    tempo: 0.132,
-    lead: [523,659,784,988,880,784,659,784,698,880,1047,1175,1047,988,880,784],
-    harmony: [262,0,392,0,440,0,392,0,349,0,440,0,523,0,440,0],
-    bass: [131,196,165,220,147,220,175,247],
-    arp: [523,659,784,988,587,698,880,1047,523,659,784,988,698,880,1047,1175],
-    drums: ['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare',null,'hat','hat'],
-    summer: [0,784,0,988,0,1047,0,988,0,880,0,784,0,880,0,1047],
-  },
-  battle: {
-    tempo: 0.122,
-    lead: [784,0,784,988,1047,988,784,659,698,0,698,880,988,880,698,659],
-    harmony: [392,0,494,0,523,0,392,0,349,0,440,0,494,0,349,0],
-    bass: [98,98,147,147,110,110,165,165],
-    arp: [392,494,587,494,349,440,523,440,392,494,587,698,659,587,523,440],
-    drums: ['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare',null,'hat','hat'],
-    summer: [0,880,0,1047,0,988,0,880,0,784,0,880,0,988,0,1047],
-  },
-};
 
-// Original destination themes: each area has its own melody, harmony and rhythm.
-music.covo = { tempo:0.188, lead:[392,494,587,659,587,494,440,392,440,494,587,784,659,587,494,440], harmony:[196,0,247,0,294,0,262,0,220,0,247,0,330,0,294,0], bass:[98,98,123,123,110,110,147,147], arp:[392,494,587,659,587,494,440,494,392,494,587,784,659,587,494,392], drums:['kick',null,null,'hat','snare',null,'hat',null,'kick',null,'hat',null,'snare',null,'hat',null], summer:[0,587,0,659,0,784,0,659,0,587,0,494,0,587,0,659] };
-music.route1 = { tempo:0.142, lead:[587,659,784,880,784,659,587,494,523,587,659,784,880,784,659,587], harmony:[294,0,330,0,392,0,440,0,262,0,294,0,349,0,392,0], bass:[147,147,165,165,131,131,175,175], arp:[587,659,784,880,784,659,587,659,523,587,698,784,880,784,698,587], drums:['kick',null,'hat',null,'snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat',null], summer:[0,784,0,880,0,988,0,880,0,784,0,659,0,784,0,880] };
-music.solara = { tempo:0.162, lead:[698,784,880,1047,988,880,784,698,659,784,880,988,1175,1047,880,784], harmony:[349,0,392,0,440,0,523,0,330,0,392,0,494,0,440,0], bass:[175,175,196,196,165,165,220,220], arp:[698,784,880,1047,880,784,698,784,659,784,988,1175,1047,988,880,784], drums:['kick',null,'hat','hat','snare',null,'hat',null,'kick',null,'hat','hat','snare',null,'hat','hat'], summer:[0,880,0,1047,0,1175,0,1047,0,988,0,880,0,988,0,1047] };
-music.ombra = { tempo:0.205, lead:[330,392,440,523,494,440,392,330,294,330,392,440,523,494,392,349], harmony:[165,0,196,0,220,0,262,0,147,0,165,0,196,0,220,0], bass:[82,82,98,98,110,110,73,73], arp:[330,392,440,523,440,392,330,392,294,349,392,440,523,440,392,330], drums:[null,null,'hat',null,null,'hat',null,null,'kick',null,null,'hat',null,null,'hat',null], summer:[0,523,0,587,0,659,0,587,0,523,0,440,0,494,0,523] };
-music.altoRidge = { tempo:0.176, lead:[494,587,698,784,880,784,698,587,523,587,698,880,988,880,784,698], harmony:[247,0,294,0,349,0,392,0,262,0,294,0,349,0,440,0], bass:[123,123,147,147,131,131,175,175], arp:[494,587,698,880,784,698,587,698,523,587,698,880,988,880,784,698], drums:['kick',null,null,'hat',null,null,'snare',null,'kick',null,'hat',null,null,'hat','snare',null], summer:[0,784,0,880,0,988,0,1175,0,988,0,880,0,784,0,698] };
-music.opening = { tempo:0.235, lead:[392,494,587,784,698,587,494,392,440,523,659,784,880,784,659,523], harmony:[196,0,247,0,294,0,392,0,220,0,262,0,330,0,440,0], bass:[98,98,73,73,110,110,82,82], arp:[392,494,587,784,698,587,494,587,440,523,659,880,784,659,523,440], drums:[null,null,null,null,'hat',null,null,null,'kick',null,null,null,'snare',null,null,null], summer:[0,0,587,0,0,659,0,784,0,0,698,0,0,784,0,880] };
-music.league = { tempo:0.128, lead:[587,784,880,1175,1047,988,880,784,698,880,988,1319,1175,1047,988,880], harmony:[294,0,392,0,440,0,587,0,349,0,440,0,523,0,494,0], bass:[147,147,196,196,175,175,220,220], arp:[587,784,880,1175,1047,880,784,880,698,880,988,1319,1175,1047,988,880], drums:['kick',null,'hat','hat','snare',null,'hat','hat','kick',null,'hat','hat','snare','hat','snare',null], summer:[0,988,0,1175,0,1319,0,1568,0,1319,0,1175,0,1047,0,988] };
 
 function beep(freq, dur = 0.08, type = 'square', vol = 0.04, when = actx && actx.currentTime) {
   if (!actx || !gameSettings.soundEffects || !freq) return;
@@ -234,67 +178,11 @@ function startAudio() {
 // ---------- Original Pocketmal cries ----------
 // Each creature has its own short melodic contour, register, timbre and texture.
 // These are generated locally with Web Audio; no copyrighted voice clips are used.
-const MAL_CRY_PROFILES = {
-  Seedkit:  { pitch: 590, wave: 'triangle', cutoff: 3100, vibrato: 5.8, wobble: 5, air: 0.003, notes: [[0,0.92,1.24,0.13],[0.13,1.30,1.04,0.12],[0.27,1.08,0.82,0.17]] },
-  Cinderp:  { pitch: 315, wave: 'sawtooth', cutoff: 1750, vibrato: 4.2, wobble: 3, air: 0.004, notes: [[0,0.82,1.34,0.19],[0.16,1.42,1.12,0.17],[0.34,1.03,0.76,0.15]] },
-  Ripplet: { pitch: 455, wave: 'triangle', cutoff: 2300, vibrato: 6.4, wobble: 4, air: 0.006, notes: [[0,0.91,1.10,0.12],[0.12,1.15,0.92,0.14],[0.29,0.88,1.18,0.19]] },
-  Bramblet:{ pitch: 365, wave: 'square', cutoff: 1450, vibrato: 7.2, wobble: 2, air: 0.002, notes: [[0,1.12,0.92,0.11],[0.10,0.98,1.22,0.09],[0.21,1.18,0.78,0.20]] },
-  Mothcinder:{ pitch: 920, wave: 'triangle', cutoff: 4200, vibrato: 8.5, wobble: 8, air: 0.007, notes: [[0,1.04,1.34,0.09],[0.10,1.40,1.16,0.10],[0.22,1.24,1.56,0.09],[0.33,1.52,0.96,0.16]] },
-  Blobble:  { pitch: 405, wave: 'sine', cutoff: 1900, vibrato: 4.8, wobble: 9, air: 0.008, notes: [[0,1.28,0.78,0.24],[0.22,0.92,1.15,0.20]] },
-  Sparkit:    { pitch: 1080, wave: 'square', cutoff: 3700, vibrato: 9.5, wobble: 6, air: 0.003, notes: [[0,0.92,1.42,0.07],[0.09,1.35,0.90,0.08],[0.20,1.06,1.60,0.07],[0.31,1.48,1.08,0.10]] },
-  Tuskvolt:   { pitch: 235, wave: 'sawtooth', cutoff: 1350, vibrato: 3.2, wobble: 2, air: 0.004, notes: [[0,1.20,0.88,0.18],[0.18,0.94,1.08,0.16],[0.35,1.02,0.68,0.21]] },
-  Rocklit:   { pitch: 285, wave: 'triangle', cutoff: 1200, vibrato: 3.6, wobble: 2, air: 0.002, notes: [[0,0.92,0.78,0.22],[0.22,0.82,1.04,0.20]] },
-  Cragmite:  { pitch: 190, wave: 'square', cutoff: 1050, vibrato: 2.8, wobble: 3, air: 0.005, notes: [[0,1.22,0.86,0.18],[0.18,0.90,0.72,0.25]] },
-  Breezel:   { pitch: 760, wave: 'sine', cutoff: 3300, vibrato: 7.8, wobble: 10, air: 0.009, notes: [[0,0.84,1.28,0.16],[0.16,1.34,1.62,0.12],[0.29,1.55,1.12,0.17]] },
-  Pufflet:  { pitch: 700, wave: 'triangle', cutoff: 3000, vibrato: 6.8, wobble: 7, air: 0.008, notes: [[0,0.96,1.20,0.12],[0.13,1.18,1.42,0.13],[0.28,1.40,1.08,0.19]] },
-  Glimmit: { pitch: 1010, wave: 'sine', cutoff: 4100, vibrato: 8.8, wobble: 5, air: 0.003, notes: [[0,1.18,1.52,0.10],[0.12,1.48,1.18,0.11],[0.25,1.20,1.72,0.14]] },
-  Hushowl:   { pitch: 335, wave: 'sine', cutoff: 1600, vibrato: 3.9, wobble: 12, air: 0.005, notes: [[0,1.18,0.86,0.28],[0.30,0.92,0.72,0.25]] },
-  Yapup:   { pitch: 500, wave: 'triangle', cutoff: 2400, vibrato: 5.4, wobble: 4, air: 0.004, notes: [[0,1.10,1.38,0.12],[0.13,1.34,1.06,0.12],[0.27,1.02,0.84,0.14]] },
-  Bunnet: { pitch: 825, wave: 'square', cutoff: 2800, vibrato: 8.1, wobble: 3, air: 0.003, notes: [[0,1.00,1.28,0.08],[0.09,1.24,0.94,0.08],[0.19,0.92,1.40,0.12]] },
-  Mossit:   { pitch: 390, wave: 'triangle', cutoff: 1850, vibrato: 4.6, wobble: 6, air: 0.007, notes: [[0,0.94,1.08,0.20],[0.22,1.06,0.78,0.23]] },
-  Kilnkit:   { pitch: 625, wave: 'triangle', cutoff: 2900, vibrato: 6.2, wobble: 5, air: 0.004, notes: [[0,1.24,1.02,0.13],[0.14,1.00,0.78,0.19],[0.34,0.90,1.14,0.12]] },
-  Ripfin: { pitch: 565, wave: 'sine', cutoff: 2700, vibrato: 7.4, wobble: 11, air: 0.008, notes: [[0,0.84,1.14,0.13],[0.14,1.18,0.92,0.14],[0.30,0.90,1.30,0.17]] },
-  Gearbit:   { pitch: 475, wave: 'square', cutoff: 2150, vibrato: 5.5, wobble: 2, air: 0.002, notes: [[0,1.18,0.90,0.10],[0.12,0.94,1.26,0.10],[0.25,1.20,0.80,0.16]] },
-  Wispurr:   { pitch: 945, wave: 'sine', cutoff: 3900, vibrato: 6.6, wobble: 13, air: 0.007, notes: [[0,0.88,1.26,0.18],[0.18,1.30,1.62,0.13],[0.33,1.52,1.04,0.20]] },
-  Latticebot:   { pitch: 265, wave: 'square', cutoff: 1650, vibrato: 2.5, wobble: 1, air: 0.001, notes: [[0,1.00,1.00,0.09],[0.12,1.50,1.50,0.07],[0.23,0.75,0.75,0.13],[0.39,1.12,0.92,0.10]] },
-  Florion:  { pitch: 355, wave: 'sawtooth', cutoff: 1550, vibrato: 3.8, wobble: 5, air: 0.004, notes: [[0,0.78,1.04,0.22],[0.22,1.10,0.88,0.20],[0.44,0.92,0.72,0.20]] },
-  Blazion:  { pitch: 295, wave: 'sawtooth', cutoff: 1900, vibrato: 4.4, wobble: 4, air: 0.005, notes: [[0,0.78,1.34,0.23],[0.20,1.28,1.05,0.18],[0.39,1.08,0.72,0.22]] },
-  Marinox:  { pitch: 435, wave: 'triangle', cutoff: 2500, vibrato: 5.2, wobble: 9, air: 0.007, notes: [[0,0.82,1.12,0.22],[0.22,1.16,1.42,0.16],[0.40,1.35,0.88,0.22]] },
-  Thornox: { pitch: 310, wave: 'sawtooth', cutoff: 1400, vibrato: 3.4, wobble: 3, air: 0.003, notes: [[0,0.88,1.10,0.18],[0.18,1.05,0.78,0.22],[0.42,0.90,0.70,0.18]] },
-  Pyrewing: { pitch: 780, wave: 'triangle', cutoff: 3600, vibrato: 7.5, wobble: 9, air: 0.006, notes: [[0,1.10,1.40,0.10],[0.12,1.45,1.20,0.11],[0.26,1.28,1.58,0.12],[0.40,1.50,0.95,0.16]] },
-  Floatide:  { pitch: 380, wave: 'sine', cutoff: 1800, vibrato: 4.5, wobble: 10, air: 0.009, notes: [[0,1.20,0.85,0.26],[0.24,0.95,1.18,0.22]] },
-  Voltuff: { pitch: 990, wave: 'square', cutoff: 3400, vibrato: 8.8, wobble: 5, air: 0.002, notes: [[0,0.95,1.45,0.08],[0.10,1.40,1.00,0.09],[0.22,1.10,1.55,0.08],[0.33,1.50,1.12,0.12]] },
-  Astrin:  { pitch: 880, wave: 'sine', cutoff: 4000, vibrato: 7.2, wobble: 8, air: 0.005, notes: [[0,1.05,1.35,0.12],[0.14,1.40,1.10,0.13],[0.30,1.15,1.55,0.16]] },
-  Skylit:    { pitch: 650, wave: 'triangle', cutoff: 2900, vibrato: 6.0, wobble: 11, air: 0.008, notes: [[0,0.90,1.25,0.14],[0.15,1.28,1.48,0.14],[0.32,1.40,1.05,0.18]] },
-  Cragmite:  { pitch: 170, wave: 'square', cutoff: 980, vibrato: 2.4, wobble: 2, air: 0.004, notes: [[0,1.15,0.80,0.20],[0.20,0.85,0.68,0.28]] },
-  'Starfox': { pitch: 720, wave: 'sine', cutoff: 3500, vibrato: 6.8, wobble: 12, air: 0.006, notes: [[0,0.95,1.30,0.16],[0.18,1.35,1.55,0.14],[0.35,1.48,1.08,0.20]] },
-  Leafox: { pitch: 470, wave: 'triangle', cutoff: 2800, vibrato: 5.5, wobble: 5, air: 0.004, notes: [[0,0.95,1.18,0.14],[0.14,1.20,1.00,0.14],[0.30,1.05,0.85,0.16]] },
-  Flamfox: { pitch: 360, wave: 'sawtooth', cutoff: 2000, vibrato: 4.8, wobble: 4, air: 0.005, notes: [[0,0.88,1.30,0.16],[0.16,1.28,1.05,0.14],[0.34,1.10,0.80,0.18]] },
-  Wavepup: { pitch: 480, wave: 'triangle', cutoff: 2400, vibrato: 5.6, wobble: 8, air: 0.006, notes: [[0,0.90,1.15,0.14],[0.14,1.18,0.95,0.14],[0.32,1.05,1.25,0.16]] },
-  Trailhound: { pitch: 320, wave: 'triangle', cutoff: 1800, vibrato: 3.8, wobble: 3, air: 0.003, notes: [[0,1.05,0.90,0.16],[0.16,0.92,1.15,0.14],[0.34,1.00,0.78,0.18]] },
-  Grainper: { pitch: 890, wave: 'sine', cutoff: 3600, vibrato: 8.2, wobble: 7, air: 0.005, notes: [[0,1.08,1.52,0.08],[0.11,1.42,1.12,0.10],[0.25,1.16,1.68,0.14]] },
-  Wheafield: { pitch: 410, wave: 'triangle', cutoff: 2200, vibrato: 4.7, wobble: 8, air: 0.006, notes: [[0,0.86,1.08,0.19],[0.20,1.12,1.32,0.16],[0.38,1.28,0.82,0.21]] },
-  Rascoon: { pitch: 545, wave: 'triangle', cutoff: 2450, vibrato: 6.1, wobble: 4, air: 0.004, notes: [[0,0.92,1.28,0.12],[0.14,1.22,0.98,0.13],[0.30,1.02,0.76,0.17]] },
-  Racrash: { pitch: 255, wave: 'sawtooth', cutoff: 1500, vibrato: 3.4, wobble: 3, air: 0.004, notes: [[0,0.82,1.08,0.22],[0.20,1.10,0.92,0.18],[0.40,0.90,0.66,0.24]] },
-  Jayble: { pitch: 940, wave: 'triangle', cutoff: 3800, vibrato: 8.7, wobble: 5, air: 0.006, notes: [[0,1.12,1.55,0.07],[0.10,1.46,1.18,0.09],[0.23,1.20,1.72,0.12]] },
-  Jayquill: { pitch: 650, wave: 'sine', cutoff: 3200, vibrato: 6.4, wobble: 10, air: 0.008, notes: [[0,0.90,1.16,0.14],[0.16,1.20,1.48,0.12],[0.31,1.42,0.92,0.19]] },
-  Jaystream: { pitch: 520, wave: 'triangle', cutoff: 2800, vibrato: 5.8, wobble: 12, air: 0.009, notes: [[0,0.78,1.08,0.20],[0.20,1.12,1.42,0.16],[0.38,1.36,0.72,0.22]] },
-  Titone: { pitch: 275, wave: 'square', cutoff: 1350, vibrato: 3.0, wobble: 2, air: 0.002, notes: [[0,1.10,0.86,0.20],[0.21,0.88,1.02,0.16],[0.39,1.00,0.70,0.23]] },
-  Rockage: { pitch: 165, wave: 'sawtooth', cutoff: 950, vibrato: 2.2, wobble: 2, air: 0.004, notes: [[0,1.20,0.78,0.24],[0.24,0.82,0.68,0.27]] },
-  Kangol: { pitch: 635, wave: 'triangle', cutoff: 2850, vibrato: 6.3, wobble: 5, air: 0.004, notes: [[0,0.94,1.26,0.12],[0.14,1.28,1.02,0.13],[0.30,1.04,0.82,0.16]] },
-  Flareroo: { pitch: 390, wave: 'sawtooth', cutoff: 2050, vibrato: 4.7, wobble: 4, air: 0.005, notes: [[0,0.84,1.30,0.17],[0.17,1.30,1.08,0.15],[0.35,1.06,0.76,0.19]] },
-  Flaresupial: { pitch: 275, wave: 'sawtooth', cutoff: 1750, vibrato: 3.8, wobble: 3, air: 0.005, notes: [[0,0.78,1.28,0.22],[0.19,1.24,1.02,0.20],[0.39,1.02,0.70,0.23]] },
-  Bubbish: { pitch: 525, wave: 'sine', cutoff: 2550, vibrato: 6.8, wobble: 9, air: 0.008, notes: [[0,1.14,0.88,0.16],[0.17,0.90,1.20,0.17],[0.35,1.20,0.78,0.19]] },
-  Foamish: { pitch: 485, wave: 'triangle', cutoff: 2450, vibrato: 5.7, wobble: 10, air: 0.008, notes: [[0,0.88,1.14,0.17],[0.18,1.18,1.38,0.15],[0.37,1.28,0.84,0.19]] },
-  Jelluburst: { pitch: 345, wave: 'sine', cutoff: 2100, vibrato: 4.2, wobble: 13, air: 0.009, notes: [[0,0.80,1.10,0.24],[0.23,1.08,1.42,0.21],[0.45,1.34,0.74,0.24]] },
-  Lizrout: { pitch: 455, wave: 'triangle', cutoff: 2250, vibrato: 5.1, wobble: 4, air: 0.004, notes: [[0,1.12,1.26,0.12],[0.15,1.24,0.96,0.13],[0.31,0.98,0.80,0.16]] },
-  Thornko: { pitch: 330, wave: 'square', cutoff: 1650, vibrato: 3.7, wobble: 3, air: 0.003, notes: [[0,0.92,1.16,0.18],[0.19,1.14,0.90,0.19],[0.39,0.88,0.70,0.21]] },
-  Branack: { pitch: 180, wave: 'sawtooth', cutoff: 1120, vibrato: 2.6, wobble: 2, air: 0.004, notes: [[0,1.16,0.82,0.22],[0.23,0.86,0.68,0.26]] },
-  Lovlittle: { pitch: 1030, wave: 'sine', cutoff: 4300, vibrato: 9.0, wobble: 6, air: 0.007, notes: [[0,1.18,1.58,0.09],[0.12,1.50,1.18,0.11],[0.27,1.20,1.72,0.13]] },
-  Malittle: { pitch: 300, wave: 'square', cutoff: 1650, vibrato: 4.1, wobble: 12, air: 0.005, notes: [[0,0.86,1.10,0.20],[0.21,1.12,0.82,0.21],[0.43,0.78,0.68,0.23]] },
-};
 
+
+let cryAnimation = null;
 function playMalCry(name, variant = 'normal') {
+  cryAnimation = { name, startedAt: frame, duration: variant === 'preview' ? 48 : 40, variant };
   if (!gameSettings.soundEffects || !AudioContextClass) return;
   startAudio();
   if (!actx) return;
@@ -378,6 +266,29 @@ function playMalCry(name, variant = 'normal') {
     }
   }
 }
+function drawCryIndicator(g, name, centerX, centerY, size) {
+  if (!cryAnimation || cryAnimation.name !== name) return;
+  const elapsed = frame - cryAnimation.startedAt;
+  if (elapsed < 0 || elapsed >= cryAnimation.duration) return;
+  const progress = elapsed / cryAnimation.duration;
+  const alpha = Math.max(0, 1 - progress);
+  g.save();
+  g.globalAlpha = alpha;
+  g.strokeStyle = '#fff1b7';
+  g.lineWidth = 1.35;
+  for (const side of [-1, 1]) {
+    const spread = size * (0.37 + progress * 0.19);
+    const radius = size * (0.13 + progress * 0.10);
+    g.beginPath();
+    g.arc(centerX + side * spread, centerY, radius, side < 0 ? -Math.PI / 2 : Math.PI / 2, side < 0 ? Math.PI / 2 : Math.PI * 1.5);
+    g.stroke();
+    g.beginPath();
+    g.arc(centerX + side * (spread + size * 0.11), centerY, radius * 0.72, side < 0 ? -Math.PI / 2 : Math.PI / 2, side < 0 ? Math.PI / 2 : Math.PI * 1.5);
+    g.stroke();
+  }
+  g.restore();
+}
+
 function playMusicTone(freq, dur, waveform, volume, when, steel = false) {
   if (!actx || muted || !freq) return;
   volume = (volume || 0.05) * 0.72;
@@ -434,17 +345,7 @@ function playMusicDrum(kind, when) {
   source.stop(when + duration + 0.01);
 }
 
-const musicLayers = {
-  melody: true,
-  harmony: true,
-  bass: true,
-  arpeggio: true,
-  percussion: true,
-  walking: true,
-  seasonal: true,
-  counter: true,
-  chords: true,
-};
+
 
 function setMusicLayer(name, enabled) {
   if (Object.prototype.hasOwnProperty.call(musicLayers, name)) {
@@ -784,9 +685,9 @@ trainerInput.addEventListener('keydown', (event) => {
 });
 
 // ---------- Mal helpers ----------
-function makeMal(name, lv) {
+function makeMal(name, lv, personality = null) {
   const sp = MALS[name];
-  const m = { name, nickname: '', lv, xp: 0, moves: sp.moves.slice(0, Math.min(sp.moves.length, 1 + Math.floor(lv / 4))), pp: {} };
+  const m = { name, nickname: '', lv, xp: 0, personality, moves: sp.moves.slice(0, Math.min(sp.moves.length, 1 + Math.floor(lv / 4))), pp: {} };
   ensureMovePP(m);
   calc(m);
   m.cur = m.maxhp;
@@ -795,10 +696,18 @@ function makeMal(name, lv) {
 const malName = (m) => m.nickname || m.name;
 function calc(m) {
   const sp = MALS[m.name];
+  const nature = PERSONALITY_MODIFIERS[m.personality] || {};
   m.maxhp = Math.floor((sp.hp * m.lv) / 25) + m.lv + 12;
-  m.atk = Math.floor((sp.atk * m.lv) / 30) + 6;
-  m.def = Math.floor((sp.def * m.lv) / 30) + 6;
-  m.spd = Math.floor((sp.spd * m.lv) / 30) + 6;
+  m.atk = Math.max(1, Math.floor((Math.floor((sp.atk * m.lv) / 30) + 6) * (nature.atk || 1)));
+  m.def = Math.max(1, Math.floor((Math.floor((sp.def * m.lv) / 30) + 6) * (nature.def || 1)));
+  m.spd = Math.max(1, Math.floor((Math.floor((sp.spd * m.lv) / 30) + 6) * (nature.spd || 1)));
+}
+function getBattleSpeed(mal) {
+  const ability = ABILITY_EFFECTS[MALS[mal.name]?.ability] || {};
+  let speed = mal.spd || 1;
+  if (ability.speedMultiplier) speed *= ability.speedMultiplier;
+  if (ability.lowHpSpeed && mal.cur <= mal.maxhp / 2) speed *= ability.lowHpSpeed;
+  return speed;
 }
 const xpNeed = (lv) => lv * lv * 6;
 
@@ -1825,6 +1734,8 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
   const phase = frame / 5 + id * 1.73;
   const cycle = Math.sin(phase);
   const motion = MAL_MOTIONS[name] || 'sway';
+  const cryAge = cryAnimation?.name === name ? frame - cryAnimation.startedAt : -1;
+  const crying = cryAge >= 0 && cryAge < (cryAnimation?.duration || 0);
   let lift = 0, lean = 0, squash = 1, shadow = 1;
   switch (motion) {
     case 'float':
@@ -1871,6 +1782,12 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
       squash = motion === 'snuffle' && cycle < -0.5 ? 0.95 : 1;
       break;
   }
+  if (crying) {
+    const cryPulse = Math.sin((cryAge / Math.max(1, cryAnimation.duration)) * Math.PI);
+    lift -= cryPulse * 3.5;
+    squash *= 1 + cryPulse * 0.055;
+    lean += Math.sin(cryAge * 0.45) * 0.025;
+  }
   let lunge = 0;
   const action = side && B && B.action && B.action.side === side ? B.action : null;
   if (action) {
@@ -1886,9 +1803,10 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
   ctx.save();
   ctx.translate(x + width / 2 + lunge, y + height);
   ctx.rotate(lean);
-  ctx.scale(side === 'me' ? -1 : 1, squash);
+  ctx.scale(1, squash);
   ctx.drawImage(malSprite(name, pose, side === 'me' ? 'back' : 'front'), -width / 2, -height + lift, width, height);
   ctx.restore();
+  if (crying) drawCryIndicator(ctx, name, x + width / 2, y + height * 0.42 + lift, width * 0.72);
 }
 
 function drawMalball(g, x, y, radius = 8) {
@@ -2159,6 +2077,16 @@ function loadFromObject(loaded) {
   S.name = S.name || 'Trainer';
   S.look = S.look || (S.gender === 'girl' ? '#d9638c' : '#427fc0');
   if (S.flags.starter) S.flags.maldex = true;
+  if (S.flags.starter) {
+    const starterProfile = STARTER_PROFILES[S.flags.starter];
+    const starterMember = [...(S.party || []), ...(S.box || [])].find((member) => member?.name === S.flags.starter);
+    if (starterMember && !starterMember.personality && starterProfile) {
+      starterMember.personality = starterProfile.personality;
+      calc(starterMember);
+      starterMember.cur = Math.min(starterMember.cur ?? starterMember.maxhp, starterMember.maxhp);
+    }
+    S.flags.starterPersonality = starterMember?.personality || S.flags.starterPersonality || starterProfile?.personality || null;
+  }
   if (S.flags.starter) S.flags.runningShoes = true;
   for (const mal of [...S.party, ...S.box]) {
     if (!mal || typeof mal !== 'object' || typeof mal.name !== 'string') continue;
@@ -2504,12 +2432,15 @@ async function pip() {
     }
 
     const name = STARTER_NAMES[pick];
-    await addMal(makeMal(name, 5));
+    const starterProfile = STARTER_PROFILES[name];
+    const starter = makeMal(name, 5, starterProfile.personality);
+    await addMal(starter);
     starterReveal = { name, start: frame };
 
     const rivalStarter = RIVAL_STARTERS[name];
 
     S.flags.starter = name;
+    S.flags.starterPersonality = starterProfile.personality;
     S.flags.rivalStarter = rivalStarter;
     S.flags.runningShoes = true;
     S.bag.Malball = 5;
@@ -2520,7 +2451,7 @@ async function pip() {
     save();
 
     await sayAll([
-      `Professor Lotus: Excellent choice. ${name} looks ready to explore Mellora with you.`,
+      `Professor Lotus: Excellent choice. ${name} is ${starterProfile.personality}, and looks ready to explore Mellora with you.`,
       `Tessa: Then I'll choose ${rivalStarter}! I want to see how our partners grow together.`,
       'Professor Lotus: Your Maldex will record what you discover. I packed five Malballs and three Potions.',
       "Tessa: I will head for Route 1. Meet me out there — I want to compare notes!",
@@ -2935,6 +2866,24 @@ function menuLabel(g, label, x, y, color = '#eaf5ff', size = 10) {
   g.font = `bold ${Math.max(9, Math.round(size * 1.3))}px "Pokemon DS", Arial, sans-serif`;
   g.fillText(label, x, y);
 }
+function drawMenuWrappedText(g, value, x, y, maxWidth, color = '#514637', size = 6, lineHeight = 10, maxLines = 4) {
+  const font = `bold ${Math.max(9, Math.round(size * 1.3))}px "Pokemon DS", Arial, sans-serif`;
+  g.font = font;
+  g.fillStyle = color;
+  const words = String(value || '').trim().split(/\\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && g.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else line = candidate;
+  }
+  if (line) lines.push(line);
+  lines.slice(0, maxLines).forEach((text, index) => g.fillText(text, x, y + index * lineHeight));
+  return lines.length;
+}
 function menuFrame(g, title) {
   g.fillStyle = '#101d31';
   g.fillRect(0, 0, 320, 240);
@@ -3219,26 +3168,22 @@ function drawGameMenu(g) {
         g.arc(276, 64, 17, 0, Math.PI * 2);
         g.fill();
         g.drawImage(malSprite(name, Math.floor(frame / 6) % 8, 'front', !!S.shinyCaught?.[name]), 260, 48, 32, 32);
+        drawCryIndicator(g, name, 276, 64, 34);
         menuLabel(g, `${species.types.map((type) => type.toUpperCase()).join('/')}  /  ${S.caught[name] ? 'CAUGHT' : S.evolved[name] ? 'EVOLVED' : 'SEEN'}`, 20, 69, '#665741', 7);
+        const descriptionLines = drawMenuWrappedText(g, species.dex, 20, 88, 216, '#514637', 6, 10, 4);
         if (!owned) {
-          menuLabel(g, 'catch this Pocketmal to reveal its', 20, 96, '#514637', 8);
-          menuLabel(g, 'complete research notes, stats, moves,', 20, 111, '#514637', 8);
-          menuLabel(g, 'ability, and evolution information.', 20, 126, '#514637', 8);
-          menuLabel(g, species.dex.slice(0, 38), 20, 151, '#665741', 7);
-          menuLabel(g, 'FIELD NOTES: INCOMPLETE', 20, 180, '#9a6f24', 8);
+          menuLabel(g, 'FIELD NOTES: INCOMPLETE', 20, 147, '#9a6f24', 8);
+          menuLabel(g, 'Catch this Pocketmal to unlock its', 20, 164, '#665741', 7);
+          menuLabel(g, 'ability details, stats, and evolution.', 20, 176, '#665741', 7);
         } else {
-          menuLabel(g, species.dex.slice(0, 43), 20, 87, '#514637', 7);
-          menuLabel(g, species.dex.slice(43, 86), 20, 98, '#514637', 7);
-          menuLabel(g, `BASE HP ${species.hp}  ATK ${species.atk}  DEF ${species.def}`, 20, 116, '#443727', 7);
-          menuLabel(g, `SPD ${species.spd}  ABILITY: ${species.ability.toUpperCase()}`, 20, 128, '#443727', 7);
-          const movesText = `MOVES: ${species.moves.map((move) => `${move} ${MOVES[move][0][0].toUpperCase()}${MOVES[move][1]}`).join(', ')}`;
-          menuLabel(g, movesText.slice(0, 44), 20, 143, '#514637', 7);
-          menuLabel(g, movesText.slice(44, 88), 20, 154, '#514637', 7);
+          const abilityY = Math.min(135, 91 + descriptionLines * 10 + 3);
+          menuLabel(g, `ABILITY: ${species.ability.toUpperCase()}`, 20, abilityY, '#8b6533', 7);
+          drawMenuWrappedText(g, ABILITY_INFO[species.ability] || 'No additional field notes are available.', 20, abilityY + 11, 216, '#514637', 6, 9, 2);
+          menuLabel(g, `HP ${species.hp}  ATK ${species.atk}  DEF ${species.def}  SPD ${species.spd}`, 20, 174, '#443727', 6);
           const ev = EVOLUTIONS[name];
-          if (ev?.to) menuLabel(g, `EVOLVES AT LV ${ev.level} INTO ${ev.to.toUpperCase()}`, 20, 172, '#39714b', 7);
-          else if (ev?.from) menuLabel(g, `EVOLVED FROM ${ev.from.toUpperCase()}`, 20, 172, '#39714b', 7);
-          else menuLabel(g, 'NO KNOWN EVOLUTION', 20, 172, '#665741', 7);
-          menuLabel(g, 'RESEARCH COMPLETE', 20, 188, '#39714b', 7);
+          if (ev?.to) menuLabel(g, `EVOLVES AT LV ${ev.level} INTO ${ev.to.toUpperCase()}`, 20, 191, '#39714b', 6);
+          else if (ev?.from) menuLabel(g, `EVOLVED FROM ${ev.from.toUpperCase()}`, 20, 191, '#39714b', 6);
+          else menuLabel(g, 'NO KNOWN EVOLUTION', 20, 191, '#665741', 6);
         }
       } else {
         menuLabel(g, 'UNDISCOVERED POCKETMAL', 30, 99, '#4f6b7a', 9);
@@ -3743,7 +3688,7 @@ async function battle(foes, trainer) {
     const foeMove = availableFoeMoves.length
       ? availableFoeMoves[Math.floor(Math.random() * availableFoeMoves.length)]
       : 'Struggle';
-    const order = playerMove && playerActor.spd >= foeActor.spd ? ['me', 'foe'] : ['foe', 'me'];
+    const order = playerMove && getBattleSpeed(playerActor) >= getBattleSpeed(foeActor) ? ['me', 'foe'] : ['foe', 'me'];
     for (const who of order) {
       if (who === 'me' && playerMove) {
         await attack(playerActor, foeActor, playerMove, true);
@@ -3780,17 +3725,58 @@ async function attack(a, d, move, mine) {
     a.pp[move]--;
   }
   await say(`${mine ? '' : 'Foe '}${malName(a)} used ${move}!`);
-  if (Math.random() * 100 > acc) return say('It missed!');
+  const attackerSpecies = MALS[a.name];
+  const defenderSpecies = MALS[d.name];
+  const attackAbility = ABILITY_EFFECTS[attackerSpecies.ability] || {};
+  const defendAbility = ABILITY_EFFECTS[defenderSpecies.ability] || {};
+  B.abilityUses = B.abilityUses || Object.create(null);
+  const defenderAbilityKey = `${mine ? 'foe' : 'me'}:${defenderSpecies.ability}`;
+  let dodgeChance = defendAbility.dodgeChance || 0;
+  if (defendAbility.lowHpDodge && d.cur <= d.maxhp / 2) dodgeChance = defendAbility.lowHpDodge;
+  if (defendAbility.oncePerBattle && B.abilityUses[defenderAbilityKey]) dodgeChance = 0;
+  if (dodgeChance > 0 && Math.random() < dodgeChance) {
+    if (defendAbility.oncePerBattle) B.abilityUses[defenderAbilityKey] = true;
+    await say(`${malName(d)}'s ${defenderSpecies.ability} helped it avoid the move!`);
+    return;
+  }
+  if (!attackAbility.alwaysHit && Math.random() * 100 > acc) return say('It missed!');
   B.action = { side: mine ? 'me' : 'foe', type, started: frame };
   await new Promise((resolve) => setTimeout(resolve, 300));
   B.action = null;
-  const sp = MALS[a.name];
-  let stab = sp.types.includes(type) ? 1.5 : 1;
-  if (stab > 1 && a.cur < a.maxhp / 3) stab *= 1.3; // abilities boost own type at low HP
-  const eff = effectiveness(type, MALS[d.name].types);
+  const sp = attackerSpecies;
+  const stab = sp.types.includes(type) ? 1.5 : 1;
+  const typePower = attackAbility.typeBoost === type ? (attackAbility.typePower || 1) : 1;
+  const typeResistance = defendAbility.resistTypes?.includes(type) ? (defendAbility.resistMultiplier || 1) : 1;
+  const eff = effectiveness(type, defenderSpecies.types);
   const critical = Math.random() < 0.0625;
-  const dmg = Math.max(1, Math.floor(((2 * a.lv / 5 + 2) * pow * a.atk / d.def / 40 + 2) * stab * eff * (critical ? 1.5 : 1) * (0.85 + Math.random() * 0.15)));
+  const baseDamage = ((2 * a.lv / 5 + 2) * pow * a.atk / d.def / 40 + 2)
+    * stab * typePower * typeResistance * (defendAbility.damageMultiplier || 1)
+    * (critical ? 1.5 : 1) * (0.85 + Math.random() * 0.15);
+  let dmg = Math.max(1, Math.floor(baseDamage));
+  if (defendAbility.sturdy && d.cur === d.maxhp && dmg >= d.cur && !B.abilityUses[defenderAbilityKey]) {
+    dmg = Math.max(0, d.cur - 1);
+    B.abilityUses[defenderAbilityKey] = true;
+    await say(`${malName(d)}'s Sturdy Shell kept it standing!`);
+  }
+  const hpBeforeHit = d.cur;
   d.cur = Math.max(0, d.cur - dmg);
+  if (attackAbility.bonusType === type && d.cur > 0 && Math.random() < attackAbility.bonusChance) {
+    const bonusDamage = Math.max(1, Math.floor(d.maxhp * (attackAbility.bonusDamage || 0.05)));
+    d.cur = Math.max(0, d.cur - bonusDamage);
+    await say(`${malName(a)}'s ${attackerSpecies.ability} added extra damage!`);
+  }
+  if (attackAbility.healOnHit && hpBeforeHit > d.cur) {
+    const healing = Math.max(1, Math.floor(a.maxhp * attackAbility.healOnHit));
+    const healed = Math.min(healing, a.maxhp - a.cur);
+    a.cur += healed;
+    if (healed > 0) await say(`${malName(a)} recovered a little HP with ${attackerSpecies.ability}!`);
+  }
+  if (attackAbility.healOnKnockout && d.cur <= 0) {
+    const healing = Math.max(1, Math.floor(a.maxhp * attackAbility.healOnKnockout));
+    const healed = Math.min(healing, a.maxhp - a.cur);
+    a.cur += healed;
+    if (healed > 0) await say(`${malName(a)} restored HP with ${attackerSpecies.ability}!`);
+  }
   B.shake = mine ? -8 : 8;
   sfx.hit();
   if (critical) await say('A critical hit!');
@@ -4881,7 +4867,7 @@ function drawStarterSelection(g) {
     g.fillText(`HP ${species.hp}  ATK ${species.atk}`, x + 11, y + 119);
     g.fillStyle = '#536b73';
     g.font = '7px "Pokemon DS", Arial, sans-serif';
-    g.fillText(STARTER_PERSONALITIES[index], x + 8, y + 132);
+    g.fillText(STARTER_PROFILES[name].cardTag, x + 8, y + 132);
     drawMalball(g, x + 82, y + 132, 5);
   });
 
@@ -4889,8 +4875,12 @@ function drawStarterSelection(g) {
   g.fillRect(14, 192, 292, 1);
   g.fillStyle = '#536b73';
   g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
-  g.fillText('UP / DOWN  SELECT PARTNER', 22, 208);
-  g.fillText('Z / ENTER  CONFIRM     X / ESC  BACK', 22, 222);
+  const selectedStarter = STARTER_NAMES[ui.idx] || STARTER_NAMES[0];
+  const selectedProfile = STARTER_PROFILES[selectedStarter];
+  g.fillText(`${selectedStarter.toUpperCase()}  /  ${selectedProfile.label} NATURE`, 22, 204);
+  g.font = '7px "Pokemon DS", Arial, sans-serif';
+  g.fillText(selectedProfile.description.slice(0, 54), 22, 216);
+  g.fillText(selectedProfile.statText, 22, 228);
 }
 
 function drawLowerScreen() {
@@ -6635,6 +6625,7 @@ function drawPocketmalSummary(g) {
   g.fill();
   const bob = Math.sin(frame * 0.13) * 2;
   g.drawImage(malSprite(mal.name, Math.floor(frame / 6) % 8, 'front', !!mal.shiny), 39, 62 + bob, 58, 58);
+  drawCryIndicator(g, mal.name, 68, 91 + bob, 56);
   menuLabel(g, mal.shiny ? '★ SHINY' : 'PARTNER', 29, 143, mal.shiny ? '#ffe58b' : '#a8d2e4', 8);
   menuLabel(g, `No. ${String(species.id).padStart(3, '0')}`, 28, 159, '#d5e4f1', 7);
   menuPanel(g, 130, 41, 176, 132);
