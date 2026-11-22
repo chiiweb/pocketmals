@@ -2115,7 +2115,8 @@ function loadFromObject(loaded) {
     clean.pp = {};
     for (const move of clean.moves) {
       const maxPP = maxMovePP(move);
-      const rawPP = Number(entry.pp && entry.pp[move]);
+      const hasSavedPP = entry.pp && typeof entry.pp === 'object' && entry.pp[move] !== undefined && entry.pp[move] !== null;
+      const rawPP = hasSavedPP ? Number(entry.pp[move]) : NaN;
       clean.pp[move] = Number.isFinite(rawPP) ? Math.max(0, Math.min(maxPP, Math.floor(rawPP))) : maxPP;
     }
     calc(clean);
@@ -5856,7 +5857,7 @@ function update() {
       const choice = choices[titleSel];
       if (!choice) return;
       if (choice.id === 'continue' && load()) mode = 'world';
-      else if (choice.id === 'new') startNew();
+      else if (choice.id === 'new') startNew().catch(showGameFailure);
       else if (choice.id === 'import') promptImportSave();
       else if (choice.id === 'export') exportSaveFile();
     }
@@ -5883,11 +5884,12 @@ function update() {
     }
     return;
   }
-  if (k === 'a') return void interact();
+  if (k === 'a') return void interact().catch(showGameFailure);
   if (k === 'b' || k === 'x') return void pauseMenu();
   for (const d of ['up', 'down', 'left', 'right']) {
     if (keys[d] || k === d) {
-      tryMove(d);
+      const moveAction = tryMove(d);
+      if (moveAction && typeof moveAction.catch === 'function') moveAction.catch(showGameFailure);
       break;
     }
   }
