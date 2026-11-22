@@ -1682,6 +1682,64 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     sparkle(12, 4, '#f4e3b2');
     sparkle(20, 13, '#c8b5f0');
 
+  // Dedicated silhouettes for the nine species that previously fell through to generic art.
+  // These are provisional original interpretations pending the owner's exact sketch references.
+  if (name === 'Brackibud') {
+    poly([[7,7],[10,4],[14,5],[18,8],[19,14],[17,18],[14,20],[9,19],[5,16],[4,11]], base);
+    poly([[7,8],[5,4],[9,6]], light); poly([[16,8],[20,4],[19,10]], accent);
+    poly([[7,15],[4,17],[6,20],[9,18]], light); poly([[15,15],[18,18],[16,21],[13,18]], accent);
+    px(7,12,2,2,ink);px(15,12,2,2,ink);px(10,16,4,1,ink);px(9,8,5,2,light);
+  } else if (name === 'Puglow') {
+    oval(12,14,8,7,base); poly([[6,9],[3,5],[8,7]],light);poly([[16,8],[20,5],[19,10]],accent);
+    oval(8,14,2,2,light,null);oval(16,14,2,2,light,null);
+    px(9,13,2,3,ink);px(14,13,2,3,ink);px(11,17,2,1,ink);
+    poly([[5,19],[8,21],[10,19]],light,null);poly([[15,19],[18,21],[20,19]],accent,null);
+  } else if (name === 'Glacub') {
+    poly([[6,8],[9,4],[12,7],[16,4],[19,9],[20,15],[17,19],[12,21],[7,19],[4,15]],base);
+    poly([[7,8],[5,4],[9,6]],light);poly([[15,7],[19,3],[18,9]],accent);
+    poly([[5,14],[2,12],[4,17]],light);poly([[19,14],[22,12],[20,17]],light);
+    px(8,12,2,2,ink);px(15,12,2,2,ink);px(11,16,2,1,ink);
+    px(8,18,3,2,light);px(14,18,3,2,accent);
+  } else if (name === 'Hauntide') {
+    poly([[8,8],[12,4],[17,7],[19,13],[17,18],[14,19],[12,22],[9,19],[6,20],[4,16],[5,11]],base);
+    poly([[8,8],[6,4],[10,6]],light);poly([[16,7],[20,4],[19,10]],accent);
+    poly([[5,17],[2,20],[6,21],[8,19]],light);poly([[16,18],[20,21],[22,19],[19,17]],accent);
+    if(view!=='back'){px(8,12,2,3,ink);px(15,12,2,3,ink);px(11,16,2,1,ink);}
+    sparkle(12,4,light);
+  } else if (name === 'Duskrowl') {
+    poly([[12,7],[8,3],[7,8],[4,10],[3,16],[7,18],[12,20],[17,18],[21,16],[20,10],[17,8],[16,3]],base);
+    poly([[8,9],[4,7],[5,13],[9,15]],light);poly([[16,9],[20,7],[19,13],[15,15]],accent);
+    poly([[8,8],[11,11],[9,13]],ink);poly([[16,8],[13,11],[15,13]],ink);
+    if(view!=='back'){px(9,11,2,2,'#fff6c8');px(15,11,2,2,'#fff6c8');px(11,15,2,1,ink);}
+    poly([[10,19],[12,22],[14,19]],accent);
+  } else if (name === 'Ferrivine') {
+    poly([[7,10],[10,6],[14,7],[18,10],[18,16],[14,19],[8,19],[5,16]],base);
+    poly([[6,11],[2,6],[4,13],[8,14]],light);poly([[16,11],[22,6],[20,14],[16,15]],accent);
+    poly([[7,8],[4,3],[10,6]],light);poly([[15,8],[20,3],[18,9]],accent);
+    px(8,12,2,2,ink);px(15,12,2,2,ink);px(11,16,2,1,ink);
+    poly([[10,19],[8,22],[12,21]],light,null);poly([[14,19],[17,22],[13,21]],accent,null);
+  } else if (name === 'Drakindle') {
+    poly([[6,9],[9,5],[14,6],[18,9],[20,15],[17,19],[7,20],[4,15]],base);
+    poly([[7,8],[4,3],[10,6]],light);poly([[15,7],[20,2],[18,9]],accent);
+    poly([[17,16],[20,14],[23,10],[22,16],[19,20]],accent);
+    px(7,12,2,2,ink);px(15,12,2,2,ink);px(10,16,4,1,ink);
+    px(8,18,3,2,light);px(14,18,3,2,accent);
+    sparkle(19,4,'#fff0a4');
+  } else if (name === 'Dunemole') {
+    poly([[5,13],[7,8],[12,6],[17,9],[20,14],[17,19],[8,20],[4,17]],base);
+    poly([[8,8],[7,3],[11,6]],light);poly([[15,8],[19,4],[18,10]],accent);
+    poly([[4,15],[1,13],[3,18],[7,18]],light);
+    poly([[18,15],[22,13],[20,18],[17,18]],accent);
+    px(8,12,2,2,ink);px(15,12,2,2,ink);px(11,16,2,1,ink);
+    poly([[9,18],[11,21],[13,18]],light);px(6,20,3,1,ink);px(16,20,3,1,ink);
+  } else if (name === 'Faefern') {
+    oval(12,15,6,6,base);poly([[8,9],[4,3],[10,6]],light);poly([[15,9],[20,3],[18,10]],accent);
+    poly([[5,14],[1,10],[3,16],[7,17]],light);poly([[17,14],[22,10],[20,17],[16,17]],accent);
+    px(8,13,2,2,ink);px(15,13,2,2,ink);px(11,16,2,1,ink);
+    poly([[9,19],[7,22],[11,20]],light,null);poly([[14,19],[17,22],[13,20]],accent,null);
+    sparkle(12,4,'#fff4c9');
+  }
+
   // Small, species-type animation accents add a second layer to the idle cycle
   // without changing each creature's approved silhouette.
   const poseFrame = ((Math.floor(Number(pose) || 0) % 8) + 8) % 8;
