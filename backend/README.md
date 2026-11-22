@@ -50,6 +50,14 @@ Allow the backend host's outbound IP in Atlas Network Access if that host provid
 
 After deployment the service gives you an API base URL, for example `https://your-pocketmals-api.example.com`. That is the URL the website uses for API requests. It is different from the MongoDB connection string.
 
+To let the game request species records from the database, open the root `main.js` and find `POCKETMALS_DATABASE_API` near the top. Replace the empty string with your public API base URL:
+
+```js
+const POCKETMALS_DATABASE_API = 'https://your-pocketmals-api.example.com';
+```
+
+Use the actual URL Render gives your service, with no extra path at the end. This public API URL is okay in frontend code. The private `MONGODB_URI` is not. If the API is offline or this setting is empty, the game falls back to its built-in species data.
+
 ## Collections and data
 
 - Database: `pocketmals`
