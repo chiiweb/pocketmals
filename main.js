@@ -738,6 +738,28 @@ function malSprite(name, pose = 0, view = 'front') {
   return (spriteCache[cacheKey] = c);
 }
 
+const MAL_FACE_STYLES = {
+  Kangol: 'brave', Bubbish: 'soft', Lizrout: 'curious',
+  Seedkit: 'curious', Leafox: 'gentle', Florion: 'dreamy',
+  Cinderp: 'bold', Flamfox: 'bold', Blazion: 'fierce',
+  Ripplet: 'sleepy', Wavepup: 'soft', Marinox: 'calm',
+  Yapup: 'playful', Trailhound: 'brave', Bunnet: 'bright',
+  Pufflet: 'round', Skylit: 'bright', Sparkit: 'electric', Voltuff: 'electric',
+  Rocklit: 'sturdy', Cragmite: 'fierce', Mossit: 'sleepy',
+  Glimmit: 'mystic', Astrin: 'mystic', Mothcinder: 'bright', Pyrewing: 'bold',
+  Blobble: 'round', Floatide: 'calm', Bramblet: 'wary', Thornox: 'fierce',
+  Hushowl: 'sleepy', Kilnkit: 'playful', Ripfin: 'curious', Breezel: 'bright',
+  Wispurr: 'mysterious', Starfox: 'mystic', Gearbit: 'mechanical',
+  Latticebot: 'mechanical', Tuskvolt: 'fierce', Brackibud: 'curious',
+  Puglow: 'brave', Glacub: 'soft', Hauntide: 'mysterious', Duskrowl: 'sharp',
+  Ferrivine: 'sturdy', Drakindle: 'brave', Dunemole: 'sleepy', Faefern: 'dreamy',
+  Grainper: 'curious', Wheafield: 'gentle', Rascoon: 'mischief', Racrash: 'brave',
+  Jayble: 'playful', Jayquill: 'bright', Jaystream: 'sharp', Titone: 'sturdy',
+  Rockage: 'fierce', Flareroo: 'playful', Flaresupial: 'fierce',
+  Foamish: 'gentle', Jelluburst: 'dreamy', Thornko: 'wary', Branack: 'sturdy',
+  Lovlittle: 'dreamy', Malittle: 'mischief',
+};
+
 function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
   const g = canvasContext;
   const { base, light, ink, accent } = colors;
@@ -774,27 +796,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       g.stroke();
     }
   };
-  const MAL_FACE_STYLES = {
-    Kangol: 'brave', Bubbish: 'soft', Lizrout: 'curious',
-    Seedkit: 'curious', Leafox: 'gentle', Florion: 'dreamy',
-    Cinderp: 'bold', Flamfox: 'bold', Blazion: 'fierce',
-    Ripplet: 'sleepy', Wavepup: 'soft', Marinox: 'calm',
-    Yapup: 'playful', Trailhound: 'brave', Bunnet: 'bright',
-    Pufflet: 'round', Skylit: 'bright', Sparkit: 'electric', Voltuff: 'electric',
-    Rocklit: 'sturdy', Cragmite: 'fierce', Mossit: 'sleepy',
-    Glimmit: 'mystic', Astrin: 'mystic', Mothcinder: 'bright', Pyrewing: 'bold',
-    Blobble: 'round', Floatide: 'calm', Bramblet: 'wary', Thornox: 'fierce',
-    Hushowl: 'sleepy', Kilnkit: 'playful', Ripfin: 'curious', Breezel: 'bright',
-    Wispurr: 'mysterious', Starfox: 'mystic', Gearbit: 'mechanical',
-    Latticebot: 'mechanical', Tuskvolt: 'fierce', Brackibud: 'curious',
-    Puglow: 'brave', Glacub: 'soft', Hauntide: 'mysterious', Duskrowl: 'sharp',
-    Ferrivine: 'sturdy', Drakindle: 'brave', Dunemole: 'sleepy', Faefern: 'dreamy',
-    Grainper: 'curious', Wheafield: 'gentle', Rascoon: 'mischief', Racrash: 'brave',
-    Jayble: 'playful', Jayquill: 'bright', Jaystream: 'sharp', Titone: 'sturdy',
-    Rockage: 'fierce', Flareroo: 'playful', Flaresupial: 'fierce',
-    Foamish: 'gentle', Jelluburst: 'dreamy', Thornko: 'wary', Branack: 'sturdy',
-    Lovlittle: 'dreamy', Malittle: 'mischief',
-  };
+
   const faceStyle = MAL_FACE_STYLES[name] || 'curious';
   const blinkPhase = (pose + (MALS[name]?.id || 0) * 3) % 9;
   const eye = (x, y, iris = '#202b3a') => {
