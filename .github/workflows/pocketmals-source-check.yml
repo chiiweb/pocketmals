@@ -50,3 +50,23 @@ jobs:
 
           console.log('Validated 65 Pocketmals, 65 Pokédex entries, cries, abilities, and music tracks.');
           NODE
+
+      - name: Syntax-check MongoDB backend
+        run: |
+          node --check backend/index.js
+          node --check backend/seed.js
+      - name: Validate MongoDB seed file
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const rows = JSON.parse(await readFile('backend/pocketmals.seed.json', 'utf8'));
+          if (!Array.isArray(rows) || rows.length !== 65) throw new Error('Expected 65 Pocketmal seed records.');
+          const names = rows.map((row) => row.name);
+          if (new Set(names).size !== rows.length) throw new Error('Duplicate species names in seed data.');
+          for (const row of rows) {
+            if (!row.name || !Array.isArray(row.types) || !row.types.length || !Array.isArray(row.moves) || !row.dex) {
+              throw new Error('Invalid Pocketmal record: ' + (row.name || 'unknown'));
+            }
+          }
+          console.log('Validated all 65 MongoDB Pocketmal records.');
+          NODE
