@@ -803,10 +803,6 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       px(x, y + 4, 3, 1, light);
     }
   };
-  const sparkle = (x, y, color = '#fff5bd') => {
-    px(x + 1, y, 1, 4, color);
-    px(x, y + 1, 3, 1, color);
-  };
   const tailFlick = pose % 4;
   const tailY = tailFlick === 0 ? 13 : tailFlick === 1 ? 11 : tailFlick === 2 ? 14 : 12;
   const canine = ['Seedkit','Leafox','Florion','Cinderp','Flamfox','Blazion','Ripplet','Wavepup','Marinox','Yapup','Trailhound','Breezel','Kilnkit'].includes(name);
@@ -948,7 +944,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[10,8],[8,3],[10,5]], ink);
     poly([[14,8],[16,3],[14,5]], ink);
     if (view !== 'back') { eye(10, 10); eye(14, 10); }
-    for (const [x,y] of [[6,11],[17,11],[7,16],[16,16]]) sparkle(x,y,'#fff0a5');
+    for (const [x,y] of [[6,11],[17,11],[7,16],[16,16]]) 
   } else if (name === 'Blobble') {
     oval(12, 13, 8, 9, ink);
     oval(12, 13, 7, 8, base, null);
@@ -966,7 +962,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[16,18],[20,17],[22,14],[22,20],[18,22]], accent);
     px(7, 15, 7, 2, light);
     if (view !== 'back') { eye(9, 12); eye(14, 12); }
-    sparkle(19,5,'#fff8b5');
+    
   } else if (name === 'Rocklit') {
     poly([[3,16],[4,9],[8,6],[16,7],[20,12],[19,19],[6,21]], ink);
     poly([[4,15],[6,9],[10,7],[16,9],[19,14],[16,19],[7,19]], base, null);
@@ -995,7 +991,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[6,18],[2,20],[4,16]], accent);
     poly([[18,18],[22,20],[20,16]], accent);
     if (view !== 'back') { eye(9, 13); eye(14, 13); }
-    sparkle(20,3,'#fff1b1');
+    
   } else if (name === 'Hushowl') {
     poly([[5,9],[4,1],[10,6],[14,6],[20,1],[19,10],[21,16],[17,21],[7,21],[3,16]], ink);
     poly([[6,9],[6,4],[10,8],[14,8],[18,4],[18,10],[20,16],[16,19],[8,19],[4,16]], base, null);
@@ -1044,7 +1040,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[18,18],[22,21],[21,15]], light);
     px(7, 12, 3, 3, light); px(14,12,3,3,light);
     if (view !== 'back') { eye(8, 12, '#d9d2ff'); eye(15,12,'#d9d2ff'); }
-    sparkle(18,3,'#fff0c6');
+    
   } else if (name === 'Latticebot') {
     poly([[5,7],[8,3],[16,3],[20,8],[20,18],[16,21],[7,21],[3,17],[3,10]], ink);
     poly([[6,8],[9,5],[15,5],[18,9],[18,17],[15,19],[8,19],[5,16],[5,10]], base, null);
@@ -1069,7 +1065,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       poly([[14,15],[18,16],[14,17]], '#e7ac55', ink);
     }
     px(8, 20, 3, 2, ink); px(13, 20, 3, 2, ink);
-    if (flameWing) sparkle(17, 5, '#ffe28a');
+    if (flameWing) 
   } else if (name === 'Voltuff') {
     poly([[4,15],[5,10],[8,8],[15,9],[19,13],[18,18],[7,20]], ink);
     poly([[6,15],[7,11],[10,10],[15,11],[17,14],[16,18],[8,18]], base, null);
@@ -1079,7 +1075,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[16,15],[21,12],[19,17]], '#fff0a0', null);
     if (view !== 'back') { eye(9, 12); eye(14, 12); }
     legs([7, 15], 18, base);
-    sparkle(19, 5, '#fff5a4');
+    
   } else if (name === 'Astrin' || name === 'Starfox') {
     const evolved = name === 'Starfox';
     poly([[5,15],[5,10],[8,8],[14,8],[18,12],[18,18],[7,20]], ink);
@@ -1094,8 +1090,8 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       px(8, 11, 8, 5, accent); px(10, 12, 4, 3, light);
     }
     if (evolved) {
-      sparkle(4, 5, '#fff0be');
-      sparkle(19, 4, '#fff0be');
+      
+      
     }
   } else if (name === 'Floatide') {
     oval(12, 13, 8, 8, ink);
@@ -1105,7 +1101,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[18,17],[21,21],[18,19]], accent);
     px(8, 8, 4, 2, light); px(15, 13, 3, 2, accent);
     if (view !== 'back') { eye(9, 11, '#efffff'); eye(14, 11, '#efffff'); }
-    sparkle(19, 6, '#dffcff');
+    
   } else if (name === 'Thornox') {
     poly([[3,15],[4,10],[8,8],[16,9],[20,14],[18,20],[6,20]], ink);
     poly([[5,15],[7,11],[10,10],[16,11],[18,15],[16,18],[7,18]], base, null);
@@ -1412,7 +1408,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       poly([[8,10],[16,10],[17,17],[8,17]], accent, ink);
       px(10, 11, 4, 4, light);
     }
-    sparkle(19, 5, '#fff');
+    
   } else if (name === 'Jelluburst') {
     poly([[4,14],[1,18],[2,21],[5,19],[7,16]], ink);
     poly([[20,14],[23,18],[22,21],[19,19],[17,16]], ink);
@@ -1429,7 +1425,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       poly([[8,9],[17,9],[19,15],[7,15]], accent, ink);
       px(10, 10, 5, 3, light);
     }
-    sparkle(20, 5, '#fff');
+    
   } else if (name === 'Lizrout') {
     poly([[7,17],[3,18],[1,21],[4,22],[9,20]], ink);
     poly([[4,20],[2,21],[6,21],[9,19]], accent, null);
@@ -1515,8 +1511,8 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     }
     px(7, 20, 3, 2, ink); px(14, 20, 3, 2, ink);
     px(8, 20, 2, 1, light); px(14, 20, 2, 1, light);
-    sparkle(19, 4, '#fff6cf');
-    sparkle(4, 15, '#fff6cf');
+    
+    
   } else if (name === 'Malittle') {
     // Malittle: compact shadow-spirit body, jagged ghost crown,
     // wispy side-flames and a clearly readable glowing chest jewel.
@@ -1549,8 +1545,8 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       poly([[17,15],[20,17],[19,20],[16,18]], light, null);
     }
     px(8, 20, 3, 2, ink); px(14, 20, 3, 2, ink);
-    sparkle(12, 4, '#f4e3b2');
-    sparkle(20, 13, '#c8b5f0');
+    
+    
   }
 
   // Dedicated silhouettes for the nine species that previously fell through to generic art.
@@ -1576,7 +1572,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[8,8],[6,4],[10,6]],light);poly([[16,7],[20,4],[19,10]],accent);
     poly([[5,17],[2,20],[6,21],[8,19]],light);poly([[16,18],[20,21],[22,19],[19,17]],accent);
     if(view!=='back'){px(8,12,2,3,ink);px(15,12,2,3,ink);px(11,16,2,1,ink);}
-    sparkle(12,4,light);
+    
   } else if (name === 'Duskrowl') {
     poly([[12,7],[8,3],[7,8],[4,10],[3,16],[7,18],[12,20],[17,18],[21,16],[20,10],[17,8],[16,3]],base);
     poly([[8,9],[4,7],[5,13],[9,15]],light);poly([[16,9],[20,7],[19,13],[15,15]],accent);
@@ -1595,7 +1591,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[17,16],[20,14],[23,10],[22,16],[19,20]],accent);
     px(7,12,2,2,ink);px(15,12,2,2,ink);px(10,16,4,1,ink);
     px(8,18,3,2,light);px(14,18,3,2,accent);
-    sparkle(19,4,'#fff0a4');
+    
   } else if (name === 'Dunemole') {
     poly([[5,13],[7,8],[12,6],[17,9],[20,14],[17,19],[8,20],[4,17]],base);
     poly([[8,8],[7,3],[11,6]],light);poly([[15,8],[19,4],[18,10]],accent);
@@ -1608,7 +1604,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     poly([[5,14],[1,10],[3,16],[7,17]],light);poly([[17,14],[22,10],[20,17],[16,17]],accent);
     px(8,13,2,2,ink);px(15,13,2,2,ink);px(11,16,2,1,ink);
     poly([[9,19],[7,22],[11,20]],light,null);poly([[14,19],[17,22],[13,20]],accent,null);
-    sparkle(12,4,'#fff4c9');
+    
   }
 
   // Small, species-type animation accents add a second layer to the idle cycle
@@ -1617,7 +1613,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
   const speciesType = MALS[name]?.type;
   if (view !== 'back') {
     if (speciesType === 'fire' && [1, 4, 7].includes(poseFrame)) {
-      sparkle(3 + (poseFrame % 3), 4 + (poseFrame % 2), '#ffd27a');
+      
       px(20, 7 + (poseFrame % 3), 1, 2, '#f08a43');
     } else if (speciesType === 'water' && [2, 5].includes(poseFrame)) {
       oval(3, 7, 1, 1.5, '#d9fbff', null);
@@ -1627,9 +1623,9 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       px(20, 12, 2, 1, '#fff4a3');
     } else if (speciesType === 'grass' && [2, 6].includes(poseFrame)) {
       poly([[3, 7],[5, 4],[7, 7],[5, 9]], '#a8d878', null);
-      sparkle(19, 5, '#efffc2');
+      
     } else if (['ghost', 'psychic', 'fairy'].includes(speciesType) && [1, 4, 7].includes(poseFrame)) {
-      sparkle(poseFrame === 4 ? 2 : 19, poseFrame === 7 ? 5 : 3, '#fff3d1');
+      
     } else if (speciesType === 'flying' && [2, 6].includes(poseFrame)) {
       px(2, 12, 3, 1, light); px(19, 11, 3, 1, accent);
     } else if (speciesType === 'steel' && [0, 4].includes(poseFrame)) {
@@ -1648,7 +1644,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     px(10, 10, 4, 4, light);
     px(11, 14, 2, 3, base);
   } else if (pose % 5 === 1) {
-    sparkle(19, 4, light);
+    
   }
 
   // Small palette highlights create the stepped shading used by DS-era sprite art.
@@ -2116,7 +2112,7 @@ function titleChoices() {
   const hasSave = hasValidSave();
   const items = [];
   if (hasSave) items.push({ id: 'continue', label: 'CONTINUE' });
-  items.push({ id: 'new', label: 'NEW GAME' });
+  items.push({ id: 'new', label: 'New Game' });
   items.push({ id: 'import', label: 'IMPORT SAVE' });
   if (hasSave) items.push({ id: 'export', label: 'EXPORT SAVE' });
   return items;
