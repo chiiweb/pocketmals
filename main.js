@@ -2944,7 +2944,7 @@ function drawMenuWrappedText(g, value, x, y, maxWidth, color = '#514637', size =
   const font = `bold ${Math.max(9, Math.round(size * 1.3))}px "Pokemon DS", Arial, sans-serif`;
   g.font = font;
   g.fillStyle = color;
-  const words = String(value || '').trim().split(/\\s+/).filter(Boolean);
+  const words = String(value || '').trim().split(/\s+/).filter(Boolean);
   const lines = [];
   let line = '';
   for (const word of words) {
