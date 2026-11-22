@@ -217,8 +217,17 @@ function beep(freq, dur = 0.08, type = 'square', vol = 0.04, when = actx && actx
 }
 function startAudio() {
   if (!AudioContextClass) return;
-  if (!actx) actx = new AudioContextClass();
-  if (actx.state === 'suspended') actx.resume();
+  try {
+    if (!actx || actx.state === 'closed') actx = new AudioContextClass();
+    if (actx.state === 'suspended') {
+      const resume = actx.resume();
+      if (resume && typeof resume.catch === 'function') {
+        resume.catch((error) => console.warn('Pocketmals audio could not resume.', error));
+      }
+    }
+  } catch (error) {
+    console.warn('Pocketmals audio could not start.', error);
+  }
 }
 
 
@@ -802,6 +811,7 @@ function loadMalSpriteSheet(name, view) {
   if (Object.prototype.hasOwnProperty.call(MAL_SPRITE_ASSETS, key)) {
     return MAL_SPRITE_ASSETS[key];
   }
+  if (Object.prototype.hasOwnProperty.call(MAL_SPRITE_ASSETS, key)) return MAL_SPRITE_ASSETS[key] || null;
   if (typeof Image === 'undefined') return null;
   const image = new Image();
   MAL_SPRITE_ASSETS[key] = image;
@@ -1690,6 +1700,7 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     px(8, 20, 3, 2, ink); px(14, 20, 3, 2, ink);
     sparkle(12, 4, '#f4e3b2');
     sparkle(20, 13, '#c8b5f0');
+  }
 
   // Dedicated silhouettes for the nine species that previously fell through to generic art.
   // These are provisional original interpretations pending the owner's exact sketch references.
@@ -2020,13 +2031,25 @@ function invalidateSaveCache() {
 }
 function save() {
   if (!S) return false;
-  const envelope = JSON.stringify(packState(S));
-  // Stable key survives renames. Legacy key stays so older builds in this browser still see progress.
-  safeStorage.setItem('mellora-dawn-save', envelope);
-  safeStorage.setItem('pocketmals_save', JSON.stringify(S));
+  let saved = false;
+  try {
+    const envelope = JSON.stringify(packState(S));
+    const legacy = JSON.stringify(S);
+    // The stable key is preferred; the legacy key remains for older builds.
+    saved = safeStorage.setItem('mellora-dawn-save', envelope) || saved;
+    saved = safeStorage.setItem('pocketmals_save', legacy) || saved;
+  } catch (error) {
+    console.warn('Pocketmals could not serialize this save.', error);
+  }
+  if (!saved) {
+    validSaveCache = false;
+    saveMessage = 'Save failed. Browser storage is unavailable or full; export a backup before leaving.';
+    return false;
+  }
   validSaveCache = true;
   titleSaveProfile = S;
   titleSaveProfileLoaded = true;
+  saveMessage = '';
   return true;
 }
 function hasValidSave() {
@@ -2046,7 +2069,11 @@ function hasValidSave() {
   }
 }
 function loadFromObject(loaded) {
-  S = loaded;
+  if (!loaded || typeof loaded !== 'object' || Array.isArray(loaded)) {
+    saveMessage = 'That file is not a valid Pocketmals save.';
+    return false;
+  }
+  S = { ...loaded };
   titleSaveProfile = S;
   titleSaveProfileLoaded = true;
   if (!S.map || !MAPS[S.map]) {
@@ -2078,15 +2105,37 @@ function loadFromObject(loaded) {
   S.flags.eliteFourWins = Array.isArray(S.flags.eliteFourWins)
     ? [...new Set(S.flags.eliteFourWins.filter((member) => [1, 2, 3, 4].includes(member)))]
     : [];
-  // Remap legacy species names from older Pocketmals builds.
-  const remapMal = (m) => {
-    if (!m || !m.name) return m;
-    const next = NAME_ALIASES[m.name] || m.name;
-    if (MALS[next]) m.name = next;
-    return m;
+  // Remap legacy species names and rebuild all battle-critical fields from trusted data.
+  // This also safely discards null entries, unknown species and malformed imported records.
+  const sanitizeImportedMal = (entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry) || typeof entry.name !== 'string') return null;
+    const speciesName = NAME_ALIASES[entry.name] || entry.name;
+    if (!MALS[speciesName]) return null;
+    const rawLevel = Number(entry.lv);
+    const level = Number.isFinite(rawLevel) ? Math.max(1, Math.min(100, Math.floor(rawLevel))) : 5;
+    const clean = { ...entry, name: speciesName, lv: level };
+    const learnedMoves = Array.isArray(entry.moves)
+      ? entry.moves.filter((move) => typeof move === 'string' && Object.prototype.hasOwnProperty.call(MOVES, move)).slice(0, 4)
+      : [];
+    clean.moves = learnedMoves.length ? learnedMoves : makeMal(speciesName, level).moves.slice();
+    clean.pp = {};
+    for (const move of clean.moves) {
+      const maxPP = maxMovePP(move);
+      const hasSavedPP = entry.pp && typeof entry.pp === 'object' && entry.pp[move] !== undefined && entry.pp[move] !== null;
+      const rawPP = hasSavedPP ? Number(entry.pp[move]) : NaN;
+      clean.pp[move] = Number.isFinite(rawPP) ? Math.max(0, Math.min(maxPP, Math.floor(rawPP))) : maxPP;
+    }
+    calc(clean);
+    const rawHP = Number(entry.cur);
+    clean.cur = Number.isFinite(rawHP) ? Math.max(0, Math.min(clean.maxhp, Math.floor(rawHP))) : clean.maxhp;
+    const rawXP = Number(entry.xp);
+    clean.xp = Number.isFinite(rawXP) ? Math.max(0, Math.min(xpNeed(level) - 1, Math.floor(rawXP))) : 0;
+    clean.nickname = typeof entry.nickname === 'string' ? entry.nickname.slice(0, 20) : '';
+    clean.shiny = entry.shiny === true;
+    return clean;
   };
-  if (Array.isArray(S.party)) S.party = S.party.map(remapMal).filter((m) => MALS[m.name]);
-  if (Array.isArray(S.box)) S.box = S.box.map(remapMal).filter((m) => MALS[m.name]);
+  S.party = Array.isArray(S.party) ? S.party.map(sanitizeImportedMal).filter(Boolean) : [];
+  S.box = Array.isArray(S.box) ? S.box.map(sanitizeImportedMal).filter(Boolean) : [];
   if (S.seen && typeof S.seen === 'object') {
     const seen = {};
     for (const k of Object.keys(S.seen)) seen[NAME_ALIASES[k] || k] = true;
@@ -3136,7 +3185,7 @@ function drawGameMenu(g) {
       g.fillStyle = '#3c5264';
       g.fillRect(284, y + 7, 15, 5);
       g.fillStyle = '#68ce8b';
-      g.fillRect(284, y + 7, 15 * (mal.cur / mal.maxhp), 5);
+      g.fillRect(284, y + 7, 15 * hpRatio(mal), 5);
     });
     menuPanel(g, 12, 176, 294, 28);
     const lead = S.party[menuState.selection];
@@ -3257,8 +3306,8 @@ function drawGameMenu(g) {
         menuLabel(g, malName(mal).slice(0, 9), x + 33, y + 13, mal.shiny ? '#ffe58b' : '#edf6fa', 7);
         menuLabel(g, `Lv${mal.lv}`, x + 33, y + 24, '#a9c4d5', 7);
         g.fillStyle = '#354b5f'; g.fillRect(x + 33, y + 28, 55, 3);
-        g.fillStyle = mal.cur / mal.maxhp > .5 ? '#73c989' : '#e5b65c';
-        g.fillRect(x + 33, y + 28, 55 * Math.max(0, mal.cur / mal.maxhp), 3);
+        g.fillStyle = hpRatio(mal) > .5 ? '#73c989' : '#e5b65c';
+        g.fillRect(x + 33, y + 28, 55 * hpRatio(mal), 3);
       });
       menuLabel(g, `${first + 1}-${Math.min(first + 12, S.box.length)} / ${S.box.length}`, 240, 218, '#d6e7ef', 7);
     }
@@ -3629,8 +3678,14 @@ function currentMovePP(mal, move) {
 
 let B = null;
 async function battle(foes, trainer) {
+  const openingMal = S?.party?.find((m) => m && m.cur > 0);
+  if (!openingMal) {
+    await say('Your party has no healthy Pocketmals!');
+    return false;
+  }
+  if (!Array.isArray(foes) || !foes.length || foes.some((mal) => !mal || !MALS[mal.name])) return false;
   mode = 'battle';
-  B = { foes, foe: foes[0], me: S.party.find((m) => m.cur > 0), trainer, shake: 0, intro: { start: frame, kind: trainer ? 'trainer' : 'wild', name: trainer?.name || malName(foes[0]) } };
+  B = { foes, foe: foes[0], me: openingMal, trainer, shake: 0, intro: { start: frame, kind: trainer ? 'trainer' : 'wild', name: trainer?.name || malName(foes[0]) } };
   foes.forEach((f) => { S.seen[f.name] = true; ensureMovePP(f); });
   S.party.forEach(ensureMovePP);
   await say(trainer
@@ -3650,14 +3705,17 @@ async function battle(foes, trainer) {
     const act = await choose(['Fight', 'Bag', 'Mals', 'Run'], `What will ${malName(B.me)} do?`);
     let playerMove = null;
     if (act === 0) {
-      const mi = await choose(B.me.moves.map((n) => {
+      const usableMoves = B.me.moves.filter((move) => currentMovePP(B.me, move) > 0);
+      const moveOptions = usableMoves.length ? usableMoves : ['Struggle'];
+      const mi = await choose(moveOptions.map((n) => {
+        if (n === 'Struggle') return 'Struggle (normal 50)  PP --';
         const [t, p] = MOVES[n] || ['normal', 40];
         const eff = B.foe ? effectiveness(t, MALS[B.foe.name].types) : 1;
         const mark = eff > 1 ? ' ★' : eff < 1 ? ' ·' : '';
         return `${n} (${t} ${p})${mark}  PP ${currentMovePP(B.me, n)}/${maxMovePP(n)}`;
       }), 'Moves');
       if (mi < 0) continue;
-      playerMove = B.me.moves[mi];
+      playerMove = moveOptions[mi];
     } else if (act === 1) {
       const used = await bagMenu(true);
       if (!used) continue;
@@ -3685,16 +3743,25 @@ async function battle(foes, trainer) {
       }
       await say('Couldn\'t escape!');
     }
-    const availableFoeMoves = B.foe.moves.filter((move) => currentMovePP(B.foe, move) > 0);
+    const playerActor = B.me;
+    const foeActor = B.foe;
+    const availableFoeMoves = foeActor.moves.filter((move) => currentMovePP(foeActor, move) > 0);
     const foeMove = availableFoeMoves.length
       ? availableFoeMoves[Math.floor(Math.random() * availableFoeMoves.length)]
       : 'Struggle';
-    const order = playerMove && B.me.spd >= B.foe.spd ? ['me', 'foe'] : ['foe', 'me'];
+    const order = playerMove && playerActor.spd >= foeActor.spd ? ['me', 'foe'] : ['foe', 'me'];
     for (const who of order) {
-      if (who === 'me' && playerMove) await attack(B.me, B.foe, playerMove, true);
-      if (who === 'foe') await attack(B.foe, B.me, foeMove, false);
+      if (who === 'me' && playerMove) {
+        await attack(playerActor, foeActor, playerMove, true);
+      } else if (who === 'foe') {
+        await attack(foeActor, playerActor, foeMove, false);
+      } else {
+        continue;
+      }
       result = await checkFaint();
-      if (result !== null || B.foe.cur <= 0 || B.me.cur <= 0) break;
+      if (result !== null) break;
+      // A replacement enters next round and cannot inherit the previous creature's queued action.
+      if (B.me !== playerActor || B.foe !== foeActor) break;
     }
   }
   if (result === false) {
@@ -3743,7 +3810,7 @@ async function checkFaint() {
     const next = B.foes.find((f) => f.cur > 0);
     if (!next) return true;
     B.foe = next;
-    await say(`${B.trainer.name} sent out ${malName(next)}!`);
+    await say(`${B.trainer?.name || 'The opponent'} sent out ${malName(next)}!`);
     playMalCry(next.name, 'sendout');
   }
   if (B.me.cur <= 0) {
@@ -3820,7 +3887,7 @@ evolveMal = async function(mal, nextName) {
 async function throwBall(ball) {
   await say(`You threw a ${ball}!`);
   const f = B.foe;
-  const healthBonus = 0.28 * (1 - f.cur / f.maxhp);
+  const healthBonus = 0.28 * (1 - hpRatio(f));
   const levelBonus = Math.max(0, 12 - f.lv) * 0.008;
   const ballBonus = ball === 'Great Malball' ? 0.12 : 0;
   const catchRate = Math.min(0.92, 0.28 + healthBonus * 1.45 + levelBonus + ballBonus);
@@ -4104,9 +4171,11 @@ const HUMAN_SPRITE_ASSETS = Object.create(null);
 const HUMAN_SPRITE_ROLES = ['player', 'player-boy', 'player-girl', 'professor', 'mom', 'tessa', 'shy', 'mimi', 'nurse', 'gymLeader', 'trainer', 'meridian', 'villager', 'robot'];
 const HUMAN_SPRITE_DIRECTIONS = ['down', 'up', 'left', 'right'];
 const HUMAN_SPRITE_DESIGN = {
-  player: 0, 'player-boy': 0, 'player-girl': 1, professor: 2, mom: 1,
-  tessa: 1, shy: 3, mimi: 1, nurse: 2, gymLeader: 3, trainer: 0,
-  meridian: 3, villager: 1, robot: 2
+  'player-boy': 0,
+  'player-girl': 1,
+  professor: 2,
+  mimi: 3,
+  tessa: 3
 };
 function loadHumanSpriteAssets() {
   if (typeof Image === 'undefined') return;
@@ -4121,7 +4190,7 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const isMeridian = role === 'meridian';
   const spriteRole = isMeridian ? 'meridian'
     : role === 'player' ? (S?.gender === 'girl' ? 'player-girl' : 'player-boy')
-      : role === 'mimi' ? 'tessa'
+      : role === 'mimi' ? 'mimi'
         : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
   const spriteDirection = ['down', 'up', 'left', 'right'].includes(dir) ? dir : 'down';
   const atlas = HUMAN_SPRITE_ASSETS.atlas;
@@ -4132,7 +4201,7 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   if (hasDedicatedAtlasSprite && atlas?.complete && atlas.naturalWidth >= 768 && atlas.naturalHeight >= 288) {
     const isPlayerSprite = ['player', 'player-boy', 'player-girl'].includes(spriteRole);
     const walkingSprite = (isPlayerSprite && moving) || motion === 'walk';
-    const design = HUMAN_SPRITE_DESIGN[spriteRole] ?? 0;
+    const design = approvedDesign;
     const directionIndex = HUMAN_SPRITE_DIRECTIONS.indexOf(spriteDirection);
     const frameIndex = walkingSprite ? Math.floor(frame / 5) % 4 : 0;
     const sourceX = design * 192 + frameIndex * 48;
@@ -5020,8 +5089,8 @@ function drawLowerScreen() {
       g.fillText(`Lv${mal.lv}`, 161, y + 19);
       g.fillStyle = '#425665';
       g.fillRect(199, y + 6, 96, 5);
-      g.fillStyle = mal.cur / mal.maxhp > 0.5 ? '#74c97a' : '#e5b65c';
-      g.fillRect(199, y + 6, 96 * (mal.cur / mal.maxhp), 5);
+      g.fillStyle = hpRatio(mal) > 0.5 ? '#74c97a' : '#e5b65c';
+      g.fillRect(199, y + 6, 96 * hpRatio(mal), 5);
       g.fillStyle = '#bac8cf';
       g.fillText(`${mal.cur}/${mal.maxhp} HP`, 199, y + 19);
     });
@@ -5206,6 +5275,12 @@ function text(s, x, y, c = '#222', size = 8) {
   ctx.textRendering = 'geometricPrecision';
   ctx.fillText(s, x, y);
 }
+function hpRatio(m) {
+  const current = Number(m?.cur);
+  const maximum = Number(m?.maxhp);
+  if (!Number.isFinite(current) || !Number.isFinite(maximum) || maximum <= 0) return 0;
+  return Math.max(0, Math.min(1, current / maximum));
+}
 function hpBar(m, x, y, showXp = false) {
   const boxH = showXp ? 38 : 30;
   ctx.fillStyle = '#182638';
@@ -5215,7 +5290,7 @@ function hpBar(m, x, y, showXp = false) {
   ctx.strokeStyle = '#314d60';
   ctx.strokeRect(x + 0.5, y + 0.5, 119, boxH - 1);
   text(`${malName(m)}  Lv${m.lv}`, x + 5, y + 10, '#24384b');
-  const r = m.cur / m.maxhp;
+  const r = hpRatio(m);
   ctx.fillStyle = '#364451';
   ctx.fillRect(x + 5, y + 15, 108, 6);
   ctx.fillStyle = r > 0.5 ? '#60b96b' : r > 0.2 ? '#e8b943' : '#db6861';
@@ -5240,7 +5315,7 @@ function drawBattleStatus(mal, x, y, width, isPlayer = false) {
   text(malName(mal).toUpperCase().slice(0, 14), x + 7, y + 13, '#273c4a', 8);
   text(`Lv${mal.lv}`, x + width - 33, y + 13, '#273c4a', 7);
   ctx.fillStyle = '#475b62'; ctx.fillRect(x + 7, y + 19, width - 14, 6);
-  const ratio = Math.max(0, mal.cur / mal.maxhp);
+  const ratio = hpRatio(mal);
   ctx.fillStyle = ratio > .5 ? '#62b673' : ratio > .2 ? '#e2b74b' : '#d86e63';
   ctx.fillRect(x + 8, y + 20, (width - 16) * ratio, 4);
   text('HP', x + 7, y + 34, '#52676b', 6);
@@ -5826,7 +5901,7 @@ function update() {
       const choice = choices[titleSel];
       if (!choice) return;
       if (choice.id === 'continue' && load()) mode = 'world';
-      else if (choice.id === 'new') startNew();
+      else if (choice.id === 'new') startNew().catch(showGameFailure);
       else if (choice.id === 'import') promptImportSave();
       else if (choice.id === 'export') exportSaveFile();
     }
@@ -5849,15 +5924,16 @@ function update() {
     moving.t += stepSpeed;
     if (moving.t >= 1) {
       moving = null;
-      afterStep();
+      afterStep().catch(showGameFailure);
     }
     return;
   }
-  if (k === 'a') return void interact();
+  if (k === 'a') return void interact().catch(showGameFailure);
   if (k === 'b' || k === 'x') return void pauseMenu();
   for (const d of ['up', 'down', 'left', 'right']) {
     if (keys[d] || k === d) {
-      tryMove(d);
+      const moveAction = tryMove(d);
+      if (moveAction && typeof moveAction.catch === 'function') moveAction.catch(showGameFailure);
       break;
     }
   }
