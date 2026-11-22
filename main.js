@@ -15,6 +15,10 @@ const safeStorage = {
   setItem(key, value) {
     try { window.localStorage.setItem(key, value); return true; }
     catch (error) { console.warn('Pocketmals could not persist this save/settings change.', error); return false; }
+  },
+  removeItem(key) {
+    try { window.localStorage.removeItem(key); return true; }
+    catch (error) { console.warn('Pocketmals could not clear invalid stored data.', error); return false; }
   }
 };
 const SETTINGS_KEY = 'pocketmals-options';
@@ -23,7 +27,7 @@ const savedSettingsRaw = safeStorage.getItem(SETTINGS_KEY);
 if (savedSettingsRaw) {
   try {
     const savedSettings = JSON.parse(savedSettingsRaw);
-    if (savedSettings && typeof savedSettings === 'object') {
+    if (savedSettings && typeof savedSettings === 'object' && !Array.isArray(savedSettings)) {
       if ([0, 1, 2].includes(savedSettings.textSpeed)) gameSettings.textSpeed = savedSettings.textSpeed;
       if ([0, 1, 2].includes(savedSettings.frameStyle)) gameSettings.frameStyle = savedSettings.frameStyle;
       if (typeof savedSettings.soundEffects === 'boolean') gameSettings.soundEffects = savedSettings.soundEffects;
@@ -31,7 +35,8 @@ if (savedSettingsRaw) {
     }
   } catch (error) {
     if (!(error instanceof SyntaxError)) throw error;
-    console.error('Could not read saved Pocketmals options; using defaults.', error);
+    console.warn('Could not read saved Pocketmals options; using defaults.', error);
+    safeStorage.removeItem(SETTINGS_KEY);
   }
 }
 function saveSettings() {
