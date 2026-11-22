@@ -218,15 +218,18 @@ function beep(freq, dur = 0.08, type = 'square', vol = 0.04, when = actx && actx
 function startAudio() {
   if (!AudioContextClass) return;
   try {
+    // Recover if a browser has closed an earlier context, and never let audio
+    // initialization prevent a menu action or battle from continuing.
     if (!actx || actx.state === 'closed') actx = new AudioContextClass();
     if (actx.state === 'suspended') {
       const resume = actx.resume();
       if (resume && typeof resume.catch === 'function') {
-        resume.catch((error) => console.warn('Pocketmals audio could not resume.', error));
+        resume.catch((error) => console.warn('Pocketmals audio could not resume; gameplay will continue.', error));
       }
     }
   } catch (error) {
-    console.warn('Pocketmals audio could not start.', error);
+    actx = null;
+    console.warn('Pocketmals audio is unavailable in this browser; gameplay will continue without sound.', error);
   }
 }
 
@@ -811,7 +814,6 @@ function loadMalSpriteSheet(name, view) {
   if (Object.prototype.hasOwnProperty.call(MAL_SPRITE_ASSETS, key)) {
     return MAL_SPRITE_ASSETS[key];
   }
-  if (Object.prototype.hasOwnProperty.call(MAL_SPRITE_ASSETS, key)) return MAL_SPRITE_ASSETS[key] || null;
   if (typeof Image === 'undefined') return null;
   const image = new Image();
   MAL_SPRITE_ASSETS[key] = image;
@@ -3185,7 +3187,7 @@ function drawGameMenu(g) {
       g.fillStyle = '#3c5264';
       g.fillRect(284, y + 7, 15, 5);
       g.fillStyle = '#68ce8b';
-      g.fillRect(284, y + 7, 15 * hpRatio(mal), 5);
+      g.fillRect(284, y + 7, 15 * Math.max(0, Math.min(1, mal.cur / Math.max(1, mal.maxhp))), 5);
     });
     menuPanel(g, 12, 176, 294, 28);
     const lead = S.party[menuState.selection];
@@ -5290,7 +5292,7 @@ function hpBar(m, x, y, showXp = false) {
   ctx.strokeStyle = '#314d60';
   ctx.strokeRect(x + 0.5, y + 0.5, 119, boxH - 1);
   text(`${malName(m)}  Lv${m.lv}`, x + 5, y + 10, '#24384b');
-  const r = hpRatio(m);
+  const r = Math.max(0, Math.min(1, m.cur / Math.max(1, m.maxhp)));
   ctx.fillStyle = '#364451';
   ctx.fillRect(x + 5, y + 15, 108, 6);
   ctx.fillStyle = r > 0.5 ? '#60b96b' : r > 0.2 ? '#e8b943' : '#db6861';
@@ -5315,7 +5317,7 @@ function drawBattleStatus(mal, x, y, width, isPlayer = false) {
   text(malName(mal).toUpperCase().slice(0, 14), x + 7, y + 13, '#273c4a', 8);
   text(`Lv${mal.lv}`, x + width - 33, y + 13, '#273c4a', 7);
   ctx.fillStyle = '#475b62'; ctx.fillRect(x + 7, y + 19, width - 14, 6);
-  const ratio = hpRatio(mal);
+  const ratio = Math.max(0, Math.min(1, mal.cur / Math.max(1, mal.maxhp)));
   ctx.fillStyle = ratio > .5 ? '#62b673' : ratio > .2 ? '#e2b74b' : '#d86e63';
   ctx.fillRect(x + 8, y + 20, (width - 16) * ratio, 4);
   text('HP', x + 7, y + 34, '#52676b', 6);
