@@ -797,7 +797,11 @@ const spriteCache = {};
 const MAL_SPRITE_ASSETS = Object.create(null);
 function loadMalSpriteSheet(name, view) {
   const key = `${name}:${view}`;
-  if (MAL_SPRITE_ASSETS[key]) return MAL_SPRITE_ASSETS[key];
+  // Remember both successful loads and 404s. Without a negative cache, a
+  // missing optional PNG is requested again every time its sprite is drawn.
+  if (Object.prototype.hasOwnProperty.call(MAL_SPRITE_ASSETS, key)) {
+    return MAL_SPRITE_ASSETS[key];
+  }
   if (typeof Image === 'undefined') return null;
   const image = new Image();
   MAL_SPRITE_ASSETS[key] = image;
@@ -805,8 +809,13 @@ function loadMalSpriteSheet(name, view) {
     for (const cachedKey of Object.keys(spriteCache)) {
       if (cachedKey.startsWith(`${name}:`)) delete spriteCache[cachedKey];
     }
+    // A shiny canvas is a colour-treated copy of the normal sprite. Discard it
+    // too, or it would keep showing procedural fallback art after the PNG loads.
+    for (const cachedKey of Object.keys(shinySpriteCache)) {
+      if (cachedKey.startsWith(`${name}:`)) delete shinySpriteCache[cachedKey];
+    }
   };
-  image.onerror = () => { MAL_SPRITE_ASSETS[key] = null; };
+  image.onerror = () => { MAL_SPRITE_ASSETS[key] = false; };
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   image.src = `./assets/sprites/pocketmals/${slug}-${view}.png`;
   return image;
@@ -4116,7 +4125,11 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
         : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
   const spriteDirection = ['down', 'up', 'left', 'right'].includes(dir) ? dir : 'down';
   const atlas = HUMAN_SPRITE_ASSETS.atlas;
-  if (atlas?.complete && atlas.naturalWidth >= 768) {
+  // The atlas currently contains only four approved character designs:
+  // boy, girl, Professor Lotus, and Mira. Other named NPCs have their own
+  // procedural chibi designs below; do not silently reuse someone else's art.
+  const hasDedicatedAtlasSprite = ['player-boy', 'player-girl', 'professor', 'shy'].includes(spriteRole);
+  if (hasDedicatedAtlasSprite && atlas?.complete && atlas.naturalWidth >= 768 && atlas.naturalHeight >= 288) {
     const isPlayerSprite = ['player', 'player-boy', 'player-girl'].includes(spriteRole);
     const walkingSprite = (isPlayerSprite && moving) || motion === 'walk';
     const design = HUMAN_SPRITE_DESIGN[spriteRole] ?? 0;
@@ -4127,7 +4140,8 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     const bob = walkingSprite ? (frameIndex % 2 ? -1 : 0)
       : motion === 'wave' ? Math.sin(frame / 9) * 1.3
         : motion === 'gesture' ? Math.sin(frame / 18) * 0.5
-        : motion === 'research' ? Math.sin(frame / 22) * 0.35 : 0;
+        : motion === 'research' ? Math.sin(frame / 22) * 0.35
+          : Math.sin(frame / 28 + px * 0.11 + py * 0.07) * 0.35;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(atlas, sourceX, sourceY, 48, 72, Math.round(px - 4), Math.round(py - 9 + bob), 18, 27);
@@ -4157,7 +4171,8 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const bob = walking ? (Math.floor(frame / 6) % 2 ? -1 : 0)
     : motion === 'wave' ? Math.sin(frame / 9) * 1.5
       : motion === 'gesture' ? Math.sin(frame / 18) * 0.6
-        : motion === 'research' ? Math.sin(frame / 22) * 0.45 : 0;
+        : motion === 'research' ? Math.sin(frame / 22) * 0.45
+        : Math.sin(frame / 28 + px * 0.11 + py * 0.07) * 0.4;
   ctx.translate(px - 4, py - 11 + bob);
   ctx.scale(isPlayer ? 1.12 : 1, isPlayer ? 1.12 : 1);
   const r = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
@@ -4220,6 +4235,13 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(10, 1, 3, 1, '#fff0cc');
     r(13, 7, 2, 2, '#c66c79');
     r(4, 5, 8, 1, '#f7e9d1');
+  } else if (role === 'robot') {
+    // Latticebot's caretaker has a hard-edged metal cowl and lit side modules.
+    p([[2,3],[4,0],[12,0],[15,4],[14,13],[11,16],[4,15],[1,11]], '#657d82', '#344958');
+    r(2, 6, 2, 5, '#f1cc66');
+    r(13, 6, 2, 5, '#f1cc66');
+    r(4, 2, 8, 2, '#bdd1ce');
+    r(6, 1, 4, 1, '#e7f3ed');
   } else if (isPlayer) {
     p([[2,3],[4,0],[11,0],[14,3],[13,6],[3,6]], '#344b67');
     r(3, 1, 9, 2, color);
@@ -4273,6 +4295,11 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(5, 10, 2, 1, '#e9949d');
     r(9, 10, 2, 1, '#e9949d');
     r(7, 11, 3, 1, '#9a555e');
+  } else if (role === 'robot') {
+    // Two bright square optics replace the ordinary human eyes.
+    r(4, 6, 3, 3, '#263b4b'); r(9, 6, 3, 3, '#263b4b');
+    r(5, 7, 1, 1, '#ffe17d'); r(10, 7, 1, 1, '#ffe17d');
+    r(7, 10, 3, 1, '#526b78');
   }
 
   ctx.restore();
@@ -4351,6 +4378,28 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
     r(5, 11, 7, 2, '#fff0c0');
     r(10, 14, 3, 3, '#8d6eaa');
     r(3, 16, 2, 3, '#e8cb8d');
+  } else if (role === 'meridian') {
+    // Team Meridian uniform: dark field coat, gold centre stripe and crest.
+    p([[3,11],[5,10],[11,10],[13,12],[13,19],[3,19]], '#2a3550', '#151c2e');
+    r(7, 11, 2, 8, '#c9a227');
+    r(4, 12, 2, 3, '#f0d56a');
+    r(11, 12, 2, 3, '#f0d56a');
+    r(5, 17, 6, 1, '#71809a');
+  } else if (role === 'robot') {
+    // Segmented body plates, dark joints and a small status-light panel.
+    p([[3,11],[5,10],[11,10],[13,12],[13,19],[3,19]], '#758c9a', '#344958');
+    r(5, 12, 2, 5, '#b9d9d2');
+    r(9, 12, 2, 5, '#b9d9d2');
+    r(7, 13, 2, 4, '#344958');
+    r(7, 14, 1, 1, '#f1cc66');
+    r(8, 16, 1, 1, '#6dc7bd');
+    r(4, 18, 8, 1, '#41596a');
+  } else if (role === 'trainer') {
+    // A small pack and shoulder strap distinguish route trainers from townsfolk.
+    r(2, 12, 3, 6, '#9b624d');
+    r(3, 13, 2, 3, '#d9a16a');
+    r(5, 11, 1, 6, '#e5bd70');
+    r(11, 17, 2, 1, '#f2d48e');
   }
 
   if (motion === 'research' && role === 'professor') {
@@ -4690,7 +4739,7 @@ function drawBattleLower(g) {
     { mal: foe, x: 166, label: 'OPPONENT' },
   ];
   for (const card of cards) {
-    const m = card.mal, hp = Math.max(0, m.cur / m.maxhp);
+    const m = card.mal, hp = Math.max(0, Math.min(1, m.cur / Math.max(1, m.maxhp)));
     g.fillStyle = '#e3e6d5'; g.fillRect(card.x, 39, 138, 39);
     g.strokeStyle = '#728982'; g.strokeRect(card.x + .5, 39.5, 137, 38);
     g.fillStyle = '#263d50'; g.font = 'bold 7px "Pokemon DS", Arial, sans-serif';
