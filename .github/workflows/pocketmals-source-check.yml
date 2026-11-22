@@ -1,0 +1,46 @@
+name: Pocketmals source validation
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check JavaScript
+        run: |
+          node --input-type=module --check < main.js
+          node --input-type=module --check < data.js
+          node --input-type=module --check < audio-data.js
+      - name: Validate species data
+        run: |
+          node --experimental-default-type=module <<'NODE'
+          import { MALS, MAL_LIST, ABILITY_INFO, ABILITY_EFFECTS } from './data.js';
+          import { MAL_CRY_PROFILES, music } from './audio-data.js';
+          const species = Object.keys(MALS);
+          if (species.length !== 65 || MAL_LIST.length !== 65) throw new Error('Expected 65 species.');
+          for (const name of species) {
+            if (!MALS[name].dex || MALS[name].dex.length < 60) throw new Error('Short/missing dex entry: ' + name);
+            if (!MAL_CRY_PROFILES[name]) throw new Error('Missing cry: ' + name);
+            const ability = MALS[name].ability;
+            if (!ABILITY_INFO[ability] || !ABILITY_EFFECTS[ability]) throw new Error('Missing ability data: ' + ability);
+          }
+          for (const track of ['title','covo','route1','battle']) if (!music[track]) throw new Error('Missing music track: ' + track);
+          console.log('Validated 65 species, Pokédex entries, cries, abilities and music.');
+          NODE
+      - name: Check that absent optional sprite PNGs are not requested
+        run: |
+          if grep -n "const approvedSheet = loadMalSpriteSheet" main.js; then
+            echo "PNG sprite loading must stay disabled until files exist."
+            exit 1
+          fi
