@@ -3281,6 +3281,7 @@ function drawGameMenu(g) {
       g.arc(227, 82, 28, 0, Math.PI * 2);
       g.fill();
       g.drawImage(malSprite(name, Math.floor(frame / 6) % 8, 'front', !!S.shinyCaught?.[name]), 205, 60, 44, 44);
+      drawCryIndicator(g, name, 227, 82, 52);
       menuLabel(g, name.toUpperCase(), 160, 123, '#fff1b7', 8);
       menuLabel(g, `${species.types.map((type) => type.toUpperCase()).join('/')} / ${S.caught[name] ? 'CAUGHT' : S.evolved[name] ? 'EVOLVED' : 'SEEN'}`, 160, 138, '#b5d4e4', 7);
       if (S.caught[name] || S.evolved[name]) {
