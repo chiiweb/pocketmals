@@ -1,0 +1,52 @@
+name: Pocketmals source checks
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out game source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check JavaScript modules
+        run: |
+          for file in main.js data.js audio-data.js; do
+            echo "Checking $file"
+            node --input-type=module --check < "$file"
+          done
+      - name: Verify Pocketmal data tables
+        run: |
+          node --experimental-default-type=module --input-type=module <<'NODE'
+          import { MALS, MAL_LIST, ABILITY_INFO, ABILITY_EFFECTS } from './data.js';
+          import { music, MAL_CRY_PROFILES } from './audio-data.js';
+
+          const names = Object.keys(MALS);
+          if (names.length !== 65 || MAL_LIST.length !== 65) {
+            throw new Error(`Expected 65 species; found ${names.length} in MALS and ${MAL_LIST.length} in MAL_LIST.`);
+          }
+
+          const missingDex = names.filter((name) => !MALS[name].dex || MALS[name].dex.length < 60);
+          const missingCries = names.filter((name) => !MAL_CRY_PROFILES[name]);
+          const missingAbilities = [...new Set(names.map((name) => MALS[name].ability))]
+            .filter((ability) => !ABILITY_INFO[ability] || !ABILITY_EFFECTS[ability]);
+
+          if (missingDex.length) throw new Error('Missing full Pokédex entries: ' + missingDex.join(', '));
+          if (missingCries.length) throw new Error('Missing species cries: ' + missingCries.join(', '));
+          if (missingAbilities.length) throw new Error('Missing ability data/effects: ' + missingAbilities.join(', '));
+          if (!music.title || !music.covo || !music.route1 || !music.battle) {
+            throw new Error('One or more required music tracks are missing.');
+          }
+
+          console.log('Validated 65 Pocketmals, 65 Pokédex entries, cries, abilities, and music tracks.');
+          NODE
