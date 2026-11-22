@@ -257,13 +257,83 @@ const RAW = [
    'A mischievous shadow spirit with a jagged silhouette and a shining chest jewel. It is Lovlittle’s counterpart.', 'ghost'],
 ];
 
+
+
+const DEX_DESCRIPTIONS = Object.freeze({
+  "Seedkit": "Seedkit naps in sunny clearings with its paws tucked beneath its leafy back. The tiny sprouts on its coat slowly turn to follow the warmest patch of light.",
+  "Leafox": "Leafox marks familiar paths by brushing its broad tail against low branches. Other forest Pocketmals recognise the fresh green scent and follow it home.",
+  "Florion": "Florion watches over quiet groves where rare plants grow. Its flowered mane opens in full only when the Pokémon feels safe beside its trusted friends.",
+  "Cinderp": "Cinderp curls up beside warm stones after sunset. When it becomes excited, the twin flames at the end of its tail brighten and dance in quick little bursts.",
+  "Flamfox": "Flamfox races across the edges of old lava fields without leaving scorch marks. It can change direction in a blink by flicking its flame-tipped tail.",
+  "Blazion": "Blazion's thick mane stores heat like a glowing hearth. Despite its powerful flames, it carefully lowers its temperature when smaller Pokémon gather near it.",
+  "Ripplet": "Ripplet paddles through shallow ponds with its fin-shaped ears held high. It can sense tiny changes in the water and often finds hidden springs first.",
+  "Wavepup": "Wavepup rides the first ripple of an approaching rain shower. Its crest rises whenever it senses a change in the wind above the water.",
+  "Marinox": "Marinox guides lost boats toward sheltered coves by swimming just ahead of them. Its broad tail keeps the surrounding water calm even in rough weather.",
+  "Yapup": "Yapup collects buttons, polished pebbles, and other small treasures along village paths. It remembers exactly where each find is buried.",
+  "Trailhound": "Trailhound can follow a familiar scent across an entire meadow. Its clear, ringing bark helps travelling groups stay together when fog covers the road.",
+  "Bunnet": "Bunnet thumps the ground with its hind feet to warn nearby Pokémon of danger. The rhythm changes depending on whether the warning is playful or serious.",
+  "Pufflet": "Pufflet practises short flights from fence posts at sunrise. Its gentle calls help young birds find their way back to the nest.",
+  "Skylit": "Skylit circles above mountain passes and searches for safe routes through the clouds. The air currents around its wings become smooth and warm as it flies.",
+  "Sparkit": "Sparkit stores static electricity in its cheek pouches. A sudden sound makes its fur stand up, sending tiny sparks skipping through dry grass.",
+  "Voltuff": "Voltuff's spiral horn gathers loose static and releases it in a focused flash. It often charges the horn by running along ridgelines before a storm.",
+  "Rocklit": "Rocklit stays perfectly still among river stones until sunlight catches the crystals on its back. Its rough shell makes it difficult to distinguish from the riverbed.",
+  "Cragmite": "Cragmite digs winding tunnels beneath ancient shrines. Its strong jaws break crystal deposits into smooth pieces that it leaves near its den.",
+  "Mossit": "Mossit grows a soft layer of living moss that gathers dew overnight. Each morning it shakes the water from its cap, leaving tiny droplets for forest insects.",
+  "Glimmit": "Glimmit's whiskers shine when it approaches old ruins or Wishbit stones. It follows faint lights that are invisible to most other Pocketmals.",
+  "Astrin": "Astrin traces glowing patterns in the air with its tail. The markings fade at dawn, but they always lead back to places where Wishbit energy is strong.",
+  "Mothcinder": "Mothcinder's wings glow like banked embers after dusk. It flashes the spots on its wings in repeating patterns to communicate with others across the woods.",
+  "Pyrewing": "Pyrewing glides above the forest canopy on warm evening air. From far away, its glowing wings look like a bright ribbon moving across the twilight sky.",
+  "Blobble": "Blobble drifts just above still ponds and stores cool water inside its clear crown. When the air becomes dry, it releases a fine mist over nearby plants.",
+  "Floatide": "Floatide carries a thin membrane that gathers moisture from passing clouds. Long ago, small villages watched its movements to know when rain was near.",
+  "Bramblet": "Bramblet curls into a round, thorn-covered shape when startled. Rain softens the points along its back, while bright sunshine makes them firm and sharp.",
+  "Thornox": "Thornox shelters smaller forest Pokémon beneath its sturdy thorned coat. It rarely moves from a grove once its neighbours have begun to rely on it.",
+  "Hushowl": "Hushowl flies between branches without disturbing the leaves. Its broad feathers absorb sound, allowing it to watch over the forest in complete quiet.",
+  "Kilnkit": "Kilnkit prefers warm rooftops and sunlit pottery shelves. The small flames along its paws brighten whenever it finds a place that feels like home.",
+  "Ripfin": "Ripfin swims upstream with powerful strokes of its fan-shaped tail. It leaps over waterfalls to reach quiet pools where the water is especially clear.",
+  "Breezel": "Breezel changes direction in midair by tilting the fins along its tail. It enjoys racing gusts of wind along open hillsides.",
+  "Wispurr": "Wispurr is said to have appeared where a Wishbit's light touched the forest floor. Its softly glowing tail leaves a trail that fades like drifting stardust.",
+  "Starfox": "Starfox watches the night sky from the highest ridges in Mellora. The patterns reflected in its eyes are said to change before a new constellation appears.",
+  "Gearbit": "Gearbit's shell turns steadily as it gathers energy from the air. Team Meridian once tried to measure its unusual charge, but the little beetle never stays still.",
+  "Latticebot": "Latticebot's chest light maps traces of energy left behind by old machines. Its careful steps and sturdy frame make it a reliable guardian of abandoned sites.",
+  "Tuskvolt": "Tuskvolt stores static electricity in the ridges of its tusks. The pale glow becomes brighter as evening approaches, especially before a thunderstorm.",
+  "Brackibud": "Brackibud hides beneath curled marsh leaves during the hottest part of the day. Its spotted shell carries a fresh herbal scent that helps it blend into wet plants.",
+  "Puglow": "Puglow trains beside mountain paths, repeating the same balanced steps until each movement is quiet and precise. It welcomes travellers who show patience.",
+  "Glacub": "Glacub gathers snowflakes on the soft fur around its ears. It rolls through fresh powder until its tracks form winding patterns around frozen ponds.",
+  "Hauntide": "Hauntide carries a small lantern-like glow through misty riverside paths. Hikers who lose their way sometimes spot its light leading toward the sound of running water.",
+  "Duskrowl": "Duskrowl keeps watch from the highest branches while its flock settles below. It can spot movement between distant trees long before the others notice.",
+  "Ferrivine": "Ferrivine's ironwood bark bends with strong winds instead of snapping. New leaves emerge between its steel-like branches after the first spring rain.",
+  "Drakindle": "Drakindle warms its crystal horns on sunlit stones before setting out. The crystals hold a gentle glow long after the evening air turns cold.",
+  "Dunemole": "Dunemole builds underground paths that connect its neighbours' burrows. Its broad paws pack loose soil into firm walls that keep the tunnels from collapsing.",
+  "Faefern": "Faefern's bright fronds shimmer when nearby forest Pokémon feel safe. It often settles in small clearings where new plants are beginning to grow.",
+  "Grainper": "Grainper gathers dew beneath its delicate wings before the morning sun dries the grass. Its sprout-tipped feelers help it find tender leaves to eat.",
+  "Wheafield": "Wheafield spreads its leafy mantle over small insects during heavy rain. The tiny creatures it shelters help keep the surrounding plants healthy.",
+  "Rascoon": "Rascoon stores berries and shiny trinkets in the thick fur of its striped tail. It checks every new object carefully before deciding where to hide it.",
+  "Racrash": "Racrash plants its feet firmly when danger approaches. Its thick banded tail forms a barrier behind which younger members of its group can hide.",
+  "Jayble": "Jayble raises its bright crest whenever it notices a path it has not explored. It remembers new routes after seeing them only once.",
+  "Jayquill": "Jayquill fans its colourful quills to signal changes in the river current. Other birds follow its movements when they travel over wide stretches of water.",
+  "Jaystream": "Jaystream spreads its long tailfeathers like a rudder and rides swift currents with remarkable control. It can travel far without needing to land.",
+  "Titone": "Titone tests each ledge with its sturdy claws before climbing higher. Its rough stone crest helps it blend into the cliffs where it rests.",
+  "Rockage": "Rockage's layered plates create the outline of a moving cliff face. It settles near high caves and keeps watch over the narrow paths leading inside.",
+  "Kangol": "Kangol carries a warm glow inside its pouch and bounds toward anything that catches its eye. It is brave, curious, and always eager to be the first to explore.",
+  "Flareroo": "Flareroo's flame-shaped ears rise whenever it prepares to spar. Its powerful tail keeps each quick hop balanced, even on uneven ground.",
+  "Flaresupial": "Flaresupial guards its friends with strong, fiery kicks. Its pouch stays warm enough to shelter small Pocketmals during chilly evenings.",
+  "Bubbish": "Bubbish gathers little bubbles inside its curling crest when it feels safe. The bubbles drift around it like a soft cloud and pop with a quiet chime.",
+  "Foamish": "Foamish's foamy mantle ripples as it glides beside the shore. It likes to copy a trainer's gestures and often forms tiny bubbles in response.",
+  "Jelluburst": "Jelluburst drifts through deep water with long, shimmering tendrils. Its calm movements create gentle lights that can be seen from the surface at night.",
+  "Lizrout": "Lizrout basks beneath broad forest leaves and watches every movement nearby. Its leafy tail helps it balance while climbing over roots and stones.",
+  "Thornko": "Thornko's thorny growths protect its head and tail. It stands between danger and smaller forest Pokémon without waiting to be asked.",
+  "Branack": "Branack's broad, rock-armoured body blends into old stone outcrops. Roots often grow around its resting place, making it look like part of the hillside.",
+  "Lovlittle": "Lovlittle appears near old wishing stones and leaves a faint sparkle on their surface. It is drawn to kind voices and often stays close to gentle companions.",
+  "Malittle": "Malittle slips between patches of shadow with its chest jewel glowing softly. It enjoys harmless pranks and often watches Lovlittle from a safe distance."
+});
+
 export const MALS = {};
 RAW.forEach((r, i) => {
   const type = LEGACY_TYPES[r[1]] || r[1];
   const secondaryType = LEGACY_TYPES[r[9]] || r[9];
   MALS[r[0]] = {
     id: i + 1, name: r[0], type, types: secondaryType ? [type, secondaryType] : [type],
-    hp: r[2], atk: r[3], def: r[4], spd: r[5], ability: r[6], moves: r[7], dex: r[8],
+    hp: r[2], atk: r[3], def: r[4], spd: r[5], ability: r[6], moves: r[7], dex: DEX_DESCRIPTIONS[r[0]] || r[8],
   };
 });
 export const MAL_LIST = RAW.map((r) => r[0]);
