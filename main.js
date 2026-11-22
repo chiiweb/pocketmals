@@ -774,14 +774,69 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
       g.stroke();
     }
   };
+  const MAL_FACE_STYLES = {
+    Kangol: 'brave', Bubbish: 'soft', Lizrout: 'curious',
+    Seedkit: 'curious', Leafox: 'gentle', Florion: 'dreamy',
+    Cinderp: 'bold', Flamfox: 'bold', Blazion: 'fierce',
+    Ripplet: 'sleepy', Wavepup: 'soft', Marinox: 'calm',
+    Yapup: 'playful', Trailhound: 'brave', Bunnet: 'bright',
+    Pufflet: 'round', Skylit: 'bright', Sparkit: 'electric', Voltuff: 'electric',
+    Rocklit: 'sturdy', Cragmite: 'fierce', Mossit: 'sleepy',
+    Glimmit: 'mystic', Astrin: 'mystic', Mothcinder: 'bright', Pyrewing: 'bold',
+    Blobble: 'round', Floatide: 'calm', Bramblet: 'wary', Thornox: 'fierce',
+    Hushowl: 'sleepy', Kilnkit: 'playful', Ripfin: 'curious', Breezel: 'bright',
+    Wispurr: 'mysterious', Starfox: 'mystic', Gearbit: 'mechanical',
+    Latticebot: 'mechanical', Tuskvolt: 'fierce', Brackibud: 'curious',
+    Puglow: 'brave', Glacub: 'soft', Hauntide: 'mysterious', Duskrowl: 'sharp',
+    Ferrivine: 'sturdy', Drakindle: 'brave', Dunemole: 'sleepy', Faefern: 'dreamy',
+    Grainper: 'curious', Wheafield: 'gentle', Rascoon: 'mischief', Racrash: 'brave',
+    Jayble: 'playful', Jayquill: 'bright', Jaystream: 'sharp', Titone: 'sturdy',
+    Rockage: 'fierce', Flareroo: 'playful', Flaresupial: 'fierce',
+    Foamish: 'gentle', Jelluburst: 'dreamy', Thornko: 'wary', Branack: 'sturdy',
+    Lovlittle: 'dreamy', Malittle: 'mischief',
+  };
+  const faceStyle = MAL_FACE_STYLES[name] || 'curious';
+  const blinkPhase = (pose + (MALS[name]?.id || 0) * 3) % 9;
   const eye = (x, y, iris = '#202b3a') => {
-    if (pose % 8 === 7) {
-      px(x, y + 1, 2, 1, ink);
+    const blink = blinkPhase === 8;
+    if (blink) {
+      px(x, y + 1, faceStyle === 'round' || faceStyle === 'soft' ? 3 : 2, 1, ink);
+      return;
+    }
+    if (['round', 'soft', 'gentle', 'dreamy', 'bright'].includes(faceStyle)) {
+      px(x, y, 3, 3, ink);
+      px(x + 1, y + 1, 2, 2, iris);
+      px(x + 1, y + 1, 1, 1, '#fff');
+      if (faceStyle === 'bright' && blinkPhase === 3) px(x + 2, y - 1, 1, 1, light);
+      return;
+    }
+    if (['sleepy', 'calm'].includes(faceStyle)) {
+      px(x, y, 3, 2, ink);
+      px(x + 1, y + 1, 1, 1, iris);
+      return;
+    }
+    if (['fierce', 'sharp', 'wary', 'sturdy'].includes(faceStyle)) {
+      px(x - 1, y, 3, 1, ink);
+      px(x, y + 1, 2, 2, ink);
+      px(x, y + 1, 1, 1, iris);
+      if (faceStyle === 'fierce' || faceStyle === 'sharp') px(x - 1, y - 1, 3, 1, ink);
+      return;
+    }
+    if (['electric', 'mechanical'].includes(faceStyle)) {
+      px(x, y, 3, 3, ink);
+      px(x + 1, y + 1, 2, 1, faceStyle === 'electric' ? '#fff0a0' : '#8ce6db');
+      px(x + 1, y, 1, 1, '#fff');
+      return;
+    }
+    if (faceStyle === 'mischief' && x > 12) {
+      px(x, y + 1, 3, 1, ink);
+      px(x + 1, y, 1, 1, iris);
       return;
     }
     px(x, y, 2, 3, ink);
     px(x, y, 1, 2, iris);
     px(x, y, 1, 1, '#fff');
+    if (['brave', 'bold', 'playful'].includes(faceStyle) && blinkPhase === 2) px(x - 1, y - 1, 3, 1, ink);
   };
   const face = (x = 12, y = 12, spacing = 5) => {
     if (view === 'back') {
@@ -791,9 +846,23 @@ function drawCreaturePixelArt(canvasContext, name, pose, view, colors) {
     }
     eye(x - spacing / 2 - 1, y);
     eye(x + spacing / 2 - 1, y);
-    px(x - 1, y + 5, 2, 1, ink);
-    px(x - 4, y + 4, 2, 1, '#e88f93');
-    px(x + 3, y + 4, 2, 1, '#e88f93');
+    // Mouth shape and timing vary slightly by temperament; no sparkle effects.
+    const mouthPhase = (pose + (MALS[name]?.id || 0)) % 4;
+    if (faceStyle === 'mischief') {
+      px(x - 1, y + 5, 3, 1, ink);
+      px(x + 1, y + 5, 1, 1, light);
+    } else if (faceStyle === 'sleepy' || faceStyle === 'calm') {
+      px(x - 1, y + 5, 2, 1, ink);
+    } else if (mouthPhase === 1 && ['playful','bright','curious','brave'].includes(faceStyle)) {
+      px(x - 1, y + 5, 2, 2, ink);
+      px(x, y + 6, 1, 1, '#f4b2a4');
+    } else {
+      px(x - 1, y + 5, 2, 1, ink);
+    }
+    if (['soft','gentle','dreamy','round'].includes(faceStyle)) {
+      px(x - 4, y + 4, 2, 1, '#e88f93);
+      px(x + 3, y + 4, 2, 1, '#e88f93);
+    }
   };
   const legs = (xs, y = 17, color = base) => {
     for (const x of xs) {
