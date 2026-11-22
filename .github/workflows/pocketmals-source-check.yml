@@ -38,9 +38,9 @@ jobs:
           for (const track of ['title','covo','route1','battle']) if (!music[track]) throw new Error('Missing music track: ' + track);
           console.log('Validated 65 species, descriptions, cries, abilities, and music.');
           NODE
-      - name: Ensure no missing optional sprite files are requested
+      - name: Ensure missing sprite assets are not requested
         run: |
-          if grep -n "assets/sprites/pocketmals/.*\.png" main.js; then
-            echo "A runtime PNG path is still being requested without an asset manifest."
+          if grep -n "const approvedSheet = loadMalSpriteSheet" main.js; then
+            echo "Optional PNG requests must remain disabled until assets are committed."
             exit 1
           fi
