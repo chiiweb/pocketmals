@@ -7,8 +7,14 @@ import { MongoClient } from "mongodb";
 const PORT = Number(process.env.PORT || 3000);
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = process.env.DB_NAME || "pocketmals";
-const allowedOrigins = (process.env.CLIENT_ORIGIN || "https://chiiweb.github.io")
+const allowedOrigins = (process.env.CLIENT_ORIGIN || "https://chiiweb.github.io,http://localhost:8080,http://127.0.0.1:8080")
   .split(",").map((value) => value.trim()).filter(Boolean);
+
+function escapeRegex(value) {
+  return Array.from(value, (character) =>
+    ".^$*+?()[]{}|\\".includes(character) ? "\\" + character : character
+  ).join("");
+}
 
 const app = express();
 app.disable("x-powered-by");
@@ -45,7 +51,7 @@ app.get("/api/health", async (_req, res) => {
 app.get("/api/pocketmals", async (req, res, next) => {
   try {
     const search = String(req.query.search || "").trim().slice(0, 40);
-    const filter = search ? { name: { $regex: search.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&"), $options: "i" } } : {};
+    const filter = search ? { name: { $regex: escapeRegex(search), $options: "i" } } : {};
     const items = await db.collection("pocketmals")
       .find(filter, { projection: { _id: 0 } })
       .sort({ id: 1 })
@@ -59,7 +65,7 @@ app.get("/api/pocketmals/:name", async (req, res, next) => {
   try {
     const name = String(req.params.name || "").trim().slice(0, 40);
     const item = await db.collection("pocketmals")
-      .findOne({ name: { $regex: "^" + name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&") + "$", $options: "i" } }, { projection: { _id: 0 } });
+      .findOne({ name: { $regex: "^" + escapeRegex(name) + "$", $options: "i" } }, { projection: { _id: 0 } });
     if (!item) return res.status(404).json({ error: "Pocketmal not found." });
     res.json(item);
   } catch (error) { next(error); }
