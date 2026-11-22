@@ -9,7 +9,8 @@ import { music, MAL_CRY_PROFILES, musicLayers } from './audio-data.js';
 const POCKETMALS_DATABASE_API = '';
 
 async function loadPocketmalDataFromDatabase() {
-  const apiBase = POCKETMALS_DATABASE_API.trim().replace(/\\/+$/, '');
+  let apiBase = POCKETMALS_DATABASE_API.trim();
+  while (apiBase.endsWith('/')) apiBase = apiBase.slice(0, -1);
   if (!apiBase) return;
 
   try {
