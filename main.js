@@ -3804,14 +3804,13 @@ async function attack(a, d, move, mine) {
   const defenderSpecies = MALS[d.name];
   const attackAbility = ABILITY_EFFECTS[attackerSpecies.ability] || {};
   const defendAbility = ABILITY_EFFECTS[defenderSpecies.ability] || {};
-  B.abilityUses = B.abilityUses || Object.create(null);
-  const defenderAbilityKey = `${mine ? 'foe' : 'me'}:${defenderSpecies.ability}`;
+  B.abilityUses = B.abilityUses instanceof WeakSet ? B.abilityUses : new WeakSet();
   let dodgeChance = defendAbility.dodgeChance || 0;
   if (defendAbility.lowHpDodge && d.cur <= d.maxhp / 2) dodgeChance = defendAbility.lowHpDodge;
-  if (defendAbility.oncePerBattle && B.abilityUses[defenderAbilityKey]) dodgeChance = 0;
+  if (defendAbility.oncePerBattle && B.abilityUses.has(d)) dodgeChance = 0;
   if (dodgeChance > 0) {
     const avoided = Math.random() < dodgeChance;
-    if (defendAbility.oncePerBattle) B.abilityUses[defenderAbilityKey] = true;
+    if (defendAbility.oncePerBattle) B.abilityUses.add(d);
     if (avoided) {
       await say(`${malName(d)}'s ${defenderSpecies.ability} helped it avoid the move!`);
       return;
@@ -3835,9 +3834,9 @@ async function attack(a, d, move, mine) {
     * stab * typePower * typeResistance * (defendAbility.damageMultiplier || 1)
     * (critical ? 1.5 : 1) * (0.85 + Math.random() * 0.15);
   let dmg = Math.max(1, Math.floor(baseDamage));
-  if (defendAbility.sturdy && d.cur === d.maxhp && dmg >= d.cur && !B.abilityUses[defenderAbilityKey]) {
+  if (defendAbility.sturdy && d.cur === d.maxhp && dmg >= d.cur && !B.abilityUses.has(d)) {
     dmg = Math.max(0, d.cur - 1);
-    B.abilityUses[defenderAbilityKey] = true;
+    B.abilityUses.add(d);
     await say(`${malName(d)}'s Sturdy Shell kept it standing!`);
   }
   const hpBeforeHit = d.cur;
