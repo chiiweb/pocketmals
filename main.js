@@ -1855,6 +1855,9 @@ function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, si
     lean += Math.sin(cryAge * 0.45) * 0.025;
   }
   let lunge = 0;
+  let attackLean = 0;
+  let attackLift = 0;
+  let attackSquash = 1;
   const action = side && B && B.action && B.action.side === side ? B.action : null;
   if (action) {
     // 4-part move beat: anticipation, launch, contact, recovery.
