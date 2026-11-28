@@ -34,6 +34,9 @@ for (const [name, views] of Object.entries(MAL_SPRITE_MANIFEST)) {
   if (!MALS[name] || !Array.isArray(views) || views.some((view) => !['front', 'back'].includes(view))) fail('Invalid sprite manifest entry: ' + name);
 }
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+const font = await readFile(new URL('../pokemon-ds-font.ttf', import.meta.url));
+if (!font.length) fail('Local pixel font is empty.');
+if (html.includes('fonts.googleapis.com')) fail('The game still requires an external Google font.');
 const main = await readFile(new URL('../main.js', import.meta.url), 'utf8');
 const htmlIds = new Set([...html.matchAll(/\\bid="([^"]+)"/g)].map((match) => match[1]));
 const jsIds = [...main.matchAll(/getElementById\\(['"]([^'"]+)['"]\\)/g)].map((match) => match[1]);
