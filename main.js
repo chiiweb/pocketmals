@@ -2008,10 +2008,23 @@ function extractState(parsed, depth = 0) {
   if (looksLikeProgress(parsed) && parsed.format !== SAVE_FORMAT) return parsed;
   return null;
 }
+function preserveUnreadableSave(raw) {
+  if (!raw) return;
+  const backupKey = 'pocketmals-unreadable-save-backup';
+  if (!safeStorage.getItem(backupKey)) safeStorage.setItem(backupKey, raw);
+}
 function readStoredSaveRaw() {
   for (const key of SAVE_KEYS) {
     const raw = safeStorage.getItem(key);
-    if (raw) return raw;
+    if (!raw) continue;
+    try {
+      if (parseSaveText(raw)) return raw;
+      preserveUnreadableSave(raw);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      preserveUnreadableSave(raw);
+      console.warn('Skipped an unreadable save entry; checking the next save key.', error);
+    }
   }
   return null;
 }
