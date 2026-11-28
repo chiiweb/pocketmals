@@ -49,6 +49,8 @@ const htmlIds = new Set([...html.matchAll(/\\bid="([^"]+)"/g)].map((match) => ma
 const jsIds = [...main.matchAll(/getElementById\\(['"]([^'"]+)['"]\\)/g)].map((match) => match[1]);
 const missingIds = [...new Set(jsIds)].filter((id) => !htmlIds.has(id));
 if (missingIds.length) fail('main.js references missing HTML element ids: ' + missingIds.join(', '));
+if (/NPCS\\[S\\.map\\]\\.(find|forEach|map)/.test(main)) fail('Unsafe NPC map lookup without an empty-list fallback.');
+if (/for \\(const \\w+ of NPCS\\[S\\.map\\]\\)/.test(main)) fail('NPC iteration can crash on maps without NPC data.');
 if (!html.includes('main.js?v=')) fail('main.js cache-busting version missing.');
 if (!music.title || !music.covo || !music.route1 || !music.battle || !music.opening) fail('Required music tracks missing.');
 console.log('Validated species, moves, abilities, cries, evolutions, maps, exits, sprite manifest, DOM ids, and music.');
