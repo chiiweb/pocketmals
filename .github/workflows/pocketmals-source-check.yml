@@ -21,7 +21,7 @@ jobs:
           node-version: 22
       - name: Syntax-check JavaScript modules
         run: |
-          for file in main.js data.js audio-data.js; do
+          for file in main.js data.js audio-data.js sprite-manifest.js tests/validate-data.mjs; do
             echo "Checking $file"
             node --input-type=module --check < "$file"
           done
@@ -50,3 +50,6 @@ jobs:
 
           console.log('Validated 65 Pocketmals, 65 Pokédex entries, cries, abilities, and music tracks.');
           NODE
+
+      - name: Run game integrity tests
+        run: node tests/validate-data.mjs
