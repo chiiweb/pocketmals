@@ -38,6 +38,13 @@ const font = await readFile(new URL('../pokemon-ds-font.ttf', import.meta.url));
 if (!font.length) fail('Local pixel font is empty.');
 if (html.includes('fonts.googleapis.com')) fail('The game still requires an external Google font.');
 const main = await readFile(new URL('../main.js', import.meta.url), 'utf8');
+if (main.includes('POCKETMALS_DATABASE_API') || main.includes('loadPocketmalDataFromDatabase')) fail('Removed database integration is still present.');
+const atlas = await readFile(new URL('../assets/sprites/humans/sprite-atlas.svg', import.meta.url), 'utf8');
+if (!atlas.includes('width="768"') || !atlas.includes('height="288"')) fail('Human sprite atlas dimensions changed unexpectedly.');
+for (const [name, views] of Object.entries(MAL_SPRITE_MANIFEST)) {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  for (const view of views) await readFile(new URL('../assets/sprites/pocketmals/' + slug + '-' + view + '.png', import.meta.url));
+}
 const htmlIds = new Set([...html.matchAll(/\\bid="([^"]+)"/g)].map((match) => match[1]));
 const jsIds = [...main.matchAll(/getElementById\\(['"]([^'"]+)['"]\\)/g)].map((match) => match[1]);
 const missingIds = [...new Set(jsIds)].filter((id) => !htmlIds.has(id));
