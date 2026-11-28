@@ -1,5 +1,6 @@
 import { MALS, MAL_LIST, MOVES, ITEMS, TMS, MAPS, TYPE_COLORS, EVOLUTIONS, effectiveness, NAME_ALIASES, ABILITY_INFO, ABILITY_EFFECTS } from './data.js';
 import { music, MAL_CRY_PROFILES, musicLayers } from './audio-data.js';
+import { MAL_SPRITE_MANIFEST } from './sprite-manifest.js';
 const STARTER_NAMES = ['Kangol', 'Bubbish', 'Lizrout'];
 const STARTER_PROFILES = Object.freeze({
   Kangol: {
@@ -717,6 +718,8 @@ const xpNeed = (lv) => lv * lv * 6;
 const spriteCache = {};
 const MAL_SPRITE_ASSETS = Object.create(null);
 function loadMalSpriteSheet(name, view) {
+  // Only request sheets explicitly present in the manifest; missing art must not flood the console with 404s.
+  if (!MAL_SPRITE_MANIFEST[name]?.includes(view)) return null;
   const key = `${name}:${view}`;
   // Remember both successful loads and 404s. Without a negative cache, a
   // missing optional PNG is requested again every time its sprite is drawn.
@@ -751,7 +754,7 @@ function malSprite(name, pose = 0, view = 'front', shiny = false) {
   c.width = c.height = 48;
   const g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
-  const approvedSheet = null; // Use procedural fallback until real species sheets are committed.
+  const approvedSheet = loadMalSpriteSheet(name, view);
   if (approvedSheet?.complete && approvedSheet.naturalWidth >= 48 && approvedSheet.naturalHeight >= 48) {
     const frameIndex = approvedSheet.naturalWidth >= 384 ? ((Math.floor(Number(pose) || 0) % 8) + 8) % 8 : 0;
     g.save();
