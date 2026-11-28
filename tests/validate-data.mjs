@@ -25,7 +25,7 @@ for (const [mapName, map] of Object.entries(MAPS)) {
   if (map.rows.some((row) => row.length !== width)) fail('Uneven map row widths: ' + mapName);
   for (const row of map.rows) for (const tile of row) if (!'T.GW#FKR BHLCS DYE'.replaceAll(' ', '').includes(tile)) fail('Unknown tile ' + tile + ' in ' + mapName);
   for (const [direction, exit] of Object.entries(map.exits || {})) {
-    if (!Array.isArray(exit) || !MAPS[exit[0]] || !Number.isInteger(exit[1]) || exit[1] < 0 || exit[1] >= MAPS[exit[0]].rows.length) fail('Invalid exit ' + mapName + ':' + direction);
+    if (!Array.isArray(exit) || !MAPS[exit[0]] || !Number.isInteger(exit[1]) || exit[1] < 0 || exit[1] >= MAPS[exit[0]].rows[0].length) fail('Invalid exit ' + mapName + ':' + direction);
   }
   for (const encounter of map.grass || []) if (!MALS[encounter]) fail('Unknown grass encounter ' + encounter + ' in ' + mapName);
   if (map.lv && (map.lv.length !== 2 || map.lv.some((lv) => !Number.isFinite(lv) || lv < 1 || lv > 100))) fail('Invalid encounter level range: ' + mapName);
