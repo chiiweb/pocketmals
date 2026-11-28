@@ -1796,7 +1796,10 @@ const MAL_MOTIONS = {
   Drakindle: 'trot', Dunemole: 'dig', Faefern: 'float',
 };
 function drawMal(name, x, y, width, height, pose = Math.floor(frame / 6) % 8, side = null) {
-  const id = MALS[name].id;
+  // Defensive guard: title/overworld data may reference a missing species during loading.
+  const mal = name ? MALS[name] : null;
+  if (!mal) return;
+  const id = mal.id;
   const phase = frame / 5 + id * 1.73;
   const cycle = Math.sin(phase);
   const motion = MAL_MOTIONS[name] || 'sway';
