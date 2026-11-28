@@ -62,3 +62,5 @@ for (const name of starterNames) {
   if (!main.includes(name + ': {')) fail('Missing starter personality profile: ' + name);
 }
 if (!main.includes("Lovlittle: 'Malittle', Malittle: 'Lovlittle'")) fail('Rival starter pairing is incomplete.');
+
+if (!main.includes('let attackLift = 0;') || !main.includes('attackLift -= wave * 1.2;') || !main.includes(' - attackLift')) fail('Battle animation attack lift variable is missing or inconsistent.');
