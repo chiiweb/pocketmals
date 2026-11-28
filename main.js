@@ -2100,7 +2100,7 @@ function loadFromObject(loaded) {
   const x = Number.isInteger(S.x) ? S.x : 9;
   const row = rows[y] || '';
   const tile = row[x] || 'T';
-  const blockedTile = SOLID.includes(tile) && !'DBRE'.includes(tile);
+  const blockedTile = SOLID.includes(tile) && !'DRE'.includes(tile);
   const occupiedByNpc = !S.room && !!npcAt(x, y);
   if (y < 0 || y >= rows.length || x < 0 || x >= row.length || blockedTile || occupiedByNpc) {
     S.map = 'pocketown';
