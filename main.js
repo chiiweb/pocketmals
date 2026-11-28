@@ -2099,7 +2099,10 @@ function loadFromObject(loaded) {
   const y = Number.isInteger(S.y) ? S.y : 12;
   const x = Number.isInteger(S.x) ? S.x : 9;
   const row = rows[y] || '';
-  if (y < 0 || y >= rows.length || x < 0 || x >= row.length) {
+  const tile = row[x] || 'T';
+  const blockedTile = SOLID.includes(tile) && !'DBRE'.includes(tile);
+  const occupiedByNpc = !S.room && !!npcAt(x, y);
+  if (y < 0 || y >= rows.length || x < 0 || x >= row.length || blockedTile || occupiedByNpc) {
     S.map = 'pocketown';
     S.x = 9;
     S.y = 12;
