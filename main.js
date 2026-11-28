@@ -4326,7 +4326,7 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
   const isMeridian = role === 'meridian';
   const spriteRole = isMeridian ? 'meridian'
     : role === 'player' ? (S?.gender === 'girl' ? 'player-girl' : 'player-boy')
-      : role === 'mimi' ? 'mimi'
+      : role === 'mimi' ? 'shy'
         : (HUMAN_SPRITE_ROLES.includes(role) ? role : 'villager');
   const spriteDirection = ['down', 'up', 'left', 'right'].includes(dir) ? dir : 'down';
   const atlas = HUMAN_SPRITE_ASSETS.atlas;
