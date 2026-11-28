@@ -1,55 +1,5 @@
 import { MALS, MAL_LIST, MOVES, ITEMS, TMS, MAPS, TYPE_COLORS, EVOLUTIONS, effectiveness, NAME_ALIASES, ABILITY_INFO, ABILITY_EFFECTS } from './data.js';
 import { music, MAL_CRY_PROFILES, musicLayers } from './audio-data.js';
-/*
- * Public URL of the Pocketmals read-only API.
- * Leave empty while the backend has not been deployed.
- * After deploying, put the API base URL here (for example: https://your-api.onrender.com).
- * Never put the private mongodb+srv connection string in this file.
- */
-const POCKETMALS_DATABASE_API = '';
-
-async function loadPocketmalDataFromDatabase() {
-  let apiBase = POCKETMALS_DATABASE_API.trim();
-  while (apiBase.endsWith('/')) apiBase = apiBase.slice(0, -1);
-  if (!apiBase) return;
-
-  try {
-    const response = await fetch(`${apiBase}/api/pocketmals`, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    if (!response.ok) throw new Error(`API returned HTTP ${response.status}`);
-    const payload = await response.json();
-    if (!payload || !Array.isArray(payload.items)) {
-      throw new Error('The API response did not contain a Pocketmal list.');
-    }
-
-    let loaded = 0;
-    for (const record of payload.items) {
-      if (!record || typeof record.name !== 'string' || !MALS[record.name]) continue;
-      const species = MALS[record.name];
-      if (Array.isArray(record.types) && record.types.length) {
-        species.types = record.types.filter((type) => typeof type === 'string').slice(0, 2);
-        species.type = species.types[0] || species.type;
-      }
-      if (Number.isFinite(record.hp)) species.hp = record.hp;
-      if (Number.isFinite(record.attack)) species.atk = record.attack;
-      if (Number.isFinite(record.defense)) species.def = record.defense;
-      if (Number.isFinite(record.speed)) species.spd = record.speed;
-      if (typeof record.ability === 'string') species.ability = record.ability;
-      if (Array.isArray(record.moves)) species.moves = record.moves.filter((move) => typeof move === 'string').slice(0, 4);
-      if (typeof record.dex === 'string') species.dex = record.dex;
-      loaded++;
-    }
-    console.info(`Pocketmals database connected: loaded ${loaded} species records.`);
-  } catch (error) {
-    // The game remains playable with its built-in data if the API is offline.
-    console.warn('Pocketmals database unavailable; using built-in species data.', error);
-  }
-}
-
-void loadPocketmalDataFromDatabase();
-
 const STARTER_NAMES = ['Kangol', 'Bubbish', 'Lizrout'];
 const STARTER_PROFILES = Object.freeze({
   Kangol: {
