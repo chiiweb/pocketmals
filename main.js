@@ -2400,16 +2400,16 @@ function drawAreaTitleCard() {
   ctx.fillStyle = '#fff';
   ctx.fillRect(x + 17, y + 20, 286, 40);
   ctx.fillStyle = '#253446';
-  ctx.font = 'bold 7px "Pixelify Sans", Arial, sans-serif';
+  ctx.font = 'bold 7px "Pokemon DS", Arial, sans-serif';
   ctx.fillText('NOW ENTERING', x + 24, y + 32);
   ctx.fillStyle = '#172638';
-  ctx.font = 'bold 16px "Pixelify Sans", Arial, sans-serif';
+  ctx.font = 'bold 16px "Pokemon DS", Arial, sans-serif';
   const title = locationCard.name.toUpperCase();
   ctx.textAlign = 'center';
   ctx.fillText(title, x + 160, y + 52, 274);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#5a6f78';
-  ctx.font = 'bold 6px "Pixelify Sans", Arial, sans-serif';
+  ctx.font = 'bold 6px "Pokemon DS", Arial, sans-serif';
   ctx.fillText('MELLORA REGION', x + 24, y + 66);
   ctx.fillStyle = '#9eafae';
   ctx.fillRect(x + 110, y + 63, 190, 1);
@@ -2945,7 +2945,7 @@ function menuPanel(g, x, y, width, height, selected = false) {
 }
 function menuLabel(g, label, x, y, color = '#eaf5ff', size = 10) {
   g.fillStyle = color;
-  g.font = `bold ${Math.max(9, Math.round(size * 1.3))}px "Pixelify Sans", Arial, sans-serif`;
+  g.font = `bold ${Math.max(9, Math.round(size * 1.3))}px "Pokemon DS", Arial, sans-serif`;
   g.fillText(label, x, y);
 }
 function drawMenuWrappedText(g, value, x, y, maxWidth, color = '#514637', size = 6, lineHeight = 10, maxLines = 4) {
@@ -3076,7 +3076,7 @@ function drawClassicMenuCard(g, item, index, x, y, width, height, selected) {
   g.lineWidth = 1;
   g.strokeRect(x + 5.5, y + 11.5, width - 11, height - 16);
   drawClassicMenuIcon(g, item.page, x + 12, y + 16, item.color);
-  g.font = 'bold 11px "Pixelify Sans", Arial, sans-serif';
+  g.font = 'bold 11px "Pokemon DS", Arial, sans-serif';
   g.textAlign = 'center';
   g.lineWidth = 2;
   g.strokeStyle = '#222';
@@ -4906,7 +4906,7 @@ function drawBattleLower(g) {
   g.fillStyle = '#25465a'; g.fillRect(4, 4, 312, 232);
   g.fillStyle = '#f1ead2'; g.fillRect(9, 9, 302, 222);
   g.fillStyle = '#2d4b61'; g.fillRect(9, 9, 302, 23);
-  g.fillStyle = '#f8edcf'; g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif';
+  g.fillStyle = '#f8edcf'; g.font = 'bold 9px "Pokemon DS", Arial, sans-serif';
   g.fillText('POCKETMALS BATTLE CONSOLE', 17, 23);
 
   const cards = [
@@ -4917,14 +4917,14 @@ function drawBattleLower(g) {
     const m = card.mal, hp = Math.max(0, Math.min(1, m.cur / Math.max(1, m.maxhp)));
     g.fillStyle = '#e3e6d5'; g.fillRect(card.x, 39, 138, 39);
     g.strokeStyle = '#728982'; g.strokeRect(card.x + .5, 39.5, 137, 38);
-    g.fillStyle = '#263d50'; g.font = 'bold 7px "Pixelify Sans", Arial, sans-serif';
+    g.fillStyle = '#263d50'; g.font = 'bold 7px "Pokemon DS", Arial, sans-serif';
     g.fillText(card.label, card.x + 6, 50);
-    g.fillStyle = '#263d50'; g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+    g.fillStyle = '#263d50'; g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
     g.fillText(`${malName(m).slice(0, 12)} Lv${m.lv}`, card.x + 6, 61);
     g.fillStyle = '#405765'; g.fillRect(card.x + 6, 66, 125, 5);
     g.fillStyle = hp > .5 ? '#59a86b' : hp > .2 ? '#d5ad4f' : '#c76561';
     g.fillRect(card.x + 6, 66, 125 * hp, 5);
-    g.fillStyle = '#536b77'; g.font = '6px "Pixelify Sans", Arial, sans-serif';
+    g.fillStyle = '#536b77'; g.font = '6px "Pokemon DS", Arial, sans-serif';
     g.fillText(`${m.cur}/${m.maxhp} HP`, card.x + 6, 75);
   }
 
@@ -4942,9 +4942,9 @@ function drawBattleLower(g) {
       g.strokeStyle = selected ? '#e4b85e' : '#8fa19a'; g.lineWidth = selected ? 3 : 1;
       g.strokeRect(x + .5, y + .5, 138, 53); g.lineWidth = 1;
       g.fillStyle = colors[i]; g.fillRect(x + 8, y + 8, 23, 23);
-      g.fillStyle = '#fff'; g.font = 'bold 11px "Pixelify Sans", Arial, sans-serif'; g.fillText(['F','B','P','R'][i], x + 16, y + 24);
-      g.fillStyle = selected ? '#fff1cf' : '#2d4352'; g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif'; g.fillText(labels[i], x + 39, y + 20);
-      g.fillStyle = selected ? '#d6e2dc' : '#657a7c'; g.font = '7px "Pixelify Sans", Arial, sans-serif'; g.fillText(hints[i], x + 39, y + 35);
+      g.fillStyle = '#fff'; g.font = 'bold 11px "Pokemon DS", Arial, sans-serif'; g.fillText(['F','B','P','R'][i], x + 16, y + 24);
+      g.fillStyle = selected ? '#fff1cf' : '#2d4352'; g.font = 'bold 9px "Pokemon DS", Arial, sans-serif'; g.fillText(labels[i], x + 39, y + 20);
+      g.fillStyle = selected ? '#d6e2dc' : '#657a7c'; g.font = '7px "Pokemon DS", Arial, sans-serif'; g.fillText(hints[i], x + 39, y + 35);
     }
   } else if (moves) {
     for (let i = 0; i < Math.min(4, player.moves.length); i++) {
@@ -4955,20 +4955,20 @@ function drawBattleLower(g) {
       g.strokeStyle = selected ? '#e4b85e' : '#8fa19a'; g.lineWidth = selected ? 3 : 1;
       g.strokeRect(x + .5, y + .5, 138, 51); g.lineWidth = 1;
       g.fillStyle = TYPE_COLORS[info[0]] || '#aaa'; g.fillRect(x + 7, y + 8, 5, 34);
-      g.fillStyle = selected ? '#fff1cf' : '#2d4352'; g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+      g.fillStyle = selected ? '#fff1cf' : '#2d4352'; g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
       g.fillText(name.toUpperCase().slice(0, 17), x + 18, y + 18);
-      g.fillStyle = selected ? '#d6e2dc' : '#657a7c'; g.font = '6px "Pixelify Sans", Arial, sans-serif';
+      g.fillStyle = selected ? '#d6e2dc' : '#657a7c'; g.font = '6px "Pokemon DS", Arial, sans-serif';
       g.fillText(`${info[0].toUpperCase()}  PWR ${info[1]}  ACC ${info[2]}`, x + 18, y + 31);
       g.fillText(`PP ${pp}/${maxMovePP(name)}`, x + 18, y + 43);
       if (pp === 0) { g.fillStyle = '#c35d5b'; g.fillText('EMPTY', x + 99, y + 43); }
     }
   } else if (otherList) {
-    g.fillStyle = '#263e50'; g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif';
+    g.fillStyle = '#263e50'; g.font = 'bold 9px "Pokemon DS", Arial, sans-serif';
     g.fillText(String(ui.title).toUpperCase().slice(0, 32), 18, 96);
     for (let i = 0; i < Math.min(6, ui.items.length); i++) {
       const y = 111 + i * 17;
       g.fillStyle = i === ui.idx ? '#d8e5d5' : '#f6f3e7'; g.fillRect(17, y - 10, 286, 15);
-      g.fillStyle = i === ui.idx ? '#ad6255' : '#30495b'; g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+      g.fillStyle = i === ui.idx ? '#ad6255' : '#30495b'; g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
       const cursorBob = i === ui.idx ? Math.sin(frame * 0.18) * 1.5 : 0;
       g.fillText(`${i === ui.idx ? '▶' : ' '} ${String(ui.items[i]).slice(0, 39)}`, 23, y + cursorBob);
       if (i === ui.idx && ui.title && (ui.title.toLowerCase().includes('mal') || ui.title.toLowerCase().includes('swap with') || ui.title.toLowerCase().includes('use on')) && S.party[i]) {
@@ -4977,17 +4977,17 @@ function drawBattleLower(g) {
       }
     }
   } else {
-    g.fillStyle = '#30495b'; g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif';
+    g.fillStyle = '#30495b'; g.font = 'bold 9px "Pokemon DS", Arial, sans-serif';
     g.fillText('BATTLE STATUS', 20, 102);
-    g.font = '8px "Pixelify Sans", Arial, sans-serif';
+    g.font = '8px "Pokemon DS", Arial, sans-serif';
     g.fillText(`PARTNER  ${malName(player).slice(0, 16)}`, 20, 126);
     g.fillText(`OPPONENT ${malName(foe).slice(0, 16)}`, 20, 144);
     g.fillText(`TURN ${B.turn || 1}`, 20, 162);
     g.fillStyle = '#72877e'; g.fillRect(20, 173, 280, 1);
-    g.font = '7px "Pixelify Sans", Arial, sans-serif'; g.fillText('Z / ENTER CONFIRM     X / ESC BACK', 20, 192);
+    g.font = '7px "Pokemon DS", Arial, sans-serif'; g.fillText('Z / ENTER CONFIRM     X / ESC BACK', 20, 192);
   }
   g.fillStyle = '#58717a'; g.fillRect(10, 224, 300, 1);
-  g.fillStyle = '#617879'; g.font = '6px "Pixelify Sans", Arial, sans-serif';
+  g.fillStyle = '#617879'; g.font = '6px "Pokemon DS", Arial, sans-serif';
   g.fillText('POCKETMALS FIELD BATTLE SYSTEM  /  LUNARO', 17, 235);
 }
 
@@ -4998,7 +4998,7 @@ function drawStarterSelection(g) {
   g.fillStyle = '#25465a'; g.fillRect(4, 4, 312, 232);
   g.fillStyle = '#f5f0df'; g.fillRect(9, 9, 302, 222);
   g.fillStyle = '#2d4b61'; g.fillRect(9, 9, 302, 25);
-  g.fillStyle = '#fff0c8'; g.font = 'bold 11px "Pixelify Sans", Arial, sans-serif';
+  g.fillStyle = '#fff0c8'; g.font = 'bold 11px "Pokemon DS", Arial, sans-serif';
   g.fillText('CHOOSE YOUR FIRST PARTNER', 17, 25);
 
   starters.forEach((name, index) => {
@@ -5015,19 +5015,19 @@ function drawStarterSelection(g) {
     g.fillStyle = selected ? '#fff8df' : '#f5f7ea';
     g.fillRect(x + 5, y + 5, 84, 15);
     g.fillStyle = '#506c70';
-    g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
     g.fillText(`PARTNER 0${index + 1}`, x + 10, y + 16);
     g.drawImage(malSprite(name, Math.floor(frame / 6 + index * 2) % 8, 'front'), x + 21, y + 23, 52, 52);
     g.fillStyle = '#2a3d4d';
-    g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 9px "Pokemon DS", Arial, sans-serif';
     g.fillText(name.toUpperCase(), x + 7, y + 87);
     g.fillStyle = TYPE_COLORS[species.type];
     g.fillRect(x + 8, y + 94, 78, 13);
     g.fillStyle = '#172c3c';
-    g.font = 'bold 7px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 7px "Pokemon DS", Arial, sans-serif';
     g.fillText(`${species.types.map((type) => type.toUpperCase()).join('/')}`, x + 22, y + 103);
     g.fillStyle = '#597174';
-    g.font = '8px "Pixelify Sans", Arial, sans-serif';
+    g.font = '8px "Pokemon DS", Arial, sans-serif';
     g.fillText(`HP ${species.hp}  ATK ${species.atk}`, x + 11, y + 119);
     g.fillStyle = '#536b73';
     g.font = '7px "Pokemon DS", Arial, sans-serif';
@@ -5056,7 +5056,7 @@ function drawLowerScreen() {
     g.fillStyle = '#1c3550';
     g.fillRect(5, 5, 310, 230);
     g.fillStyle = '#ffd45a';
-    g.font = 'bold 16px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 16px "Pokemon DS", Arial, sans-serif';
     g.fillText('MELLORA REGION', 16, 25);
     g.fillStyle = '#8197ae';
     g.fillRect(16, 33, 288, 1);
@@ -5069,7 +5069,7 @@ function drawLowerScreen() {
     g.fillRect(16, 42, 288, 44);
     g.fillStyle = '#31566b';
     g.fillRect(16, 42, 288, 13);
-    g.font = 'bold 10px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 10px "Pokemon DS", Arial, sans-serif';
     g.fillStyle = '#fff';
     g.fillText(hasSave ? 'ADVENTURE DATA' : 'NO SAVE YET', 23, 52);
     if (profile && hasSave) {
@@ -5080,13 +5080,13 @@ function drawLowerScreen() {
       g.fillStyle = '#273645';
       g.fillRect(27, 70, 10, 9);
       g.fillStyle = '#203e4e';
-      g.font = 'bold 10px "Pixelify Sans", Arial, sans-serif';
+      g.font = 'bold 10px "Pokemon DS", Arial, sans-serif';
       g.fillText((profile.name || 'Trainer').slice(0, 12), 49, 68);
-      g.font = '9px "Pixelify Sans", Arial, sans-serif';
+      g.font = '9px "Pokemon DS", Arial, sans-serif';
       g.fillText(`${(MAPS[profile.map]?.name || 'Mellora').toUpperCase()}  ·  ${profile.badges?.length || 0} BADGES`, 49, 80);
     } else {
       g.fillStyle = '#203e4e';
-      g.font = 'bold 10px "Pixelify Sans", Arial, sans-serif';
+      g.font = 'bold 10px "Pokemon DS", Arial, sans-serif';
       g.fillText('Start fresh and meet Professor Lotus.', 23, 73);
     }
 
@@ -5098,13 +5098,13 @@ function drawLowerScreen() {
       g.strokeStyle = selected ? '#2f6577' : '#8da5aa';
       g.lineWidth = selected ? 2 : 1;
       g.strokeRect(24.5, y + 0.5, 271, 24);
-      g.font = 'bold 12px "Pixelify Sans", Arial, sans-serif';
+      g.font = 'bold 12px "Pokemon DS", Arial, sans-serif';
       g.fillStyle = '#203e4e';
       g.fillText(`${selected ? '▶  ' : '   '}${choice.label}`, 34, y + 17);
     });
 
     g.fillStyle = '#b8c9da';
-    g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 9px "Pokemon DS", Arial, sans-serif';
     g.fillText('PRESS START  ·  Z / ENTER SELECT', 18, 229);
     if (saveMessage) {
       g.fillStyle = '#ffe29a';
@@ -5119,7 +5119,7 @@ function drawLowerScreen() {
     g.save();
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.font = 'bold 27px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 27px "Pokemon DS", Arial, sans-serif';
     g.shadowColor = '#f4ffff';
     g.shadowBlur = glow * 2;
     g.fillStyle = '#fff';
@@ -5143,14 +5143,14 @@ function drawLowerScreen() {
   g.fillStyle = '#293e59';
   g.fillRect(3, 3, 314, 234);
   g.fillStyle = '#ffd45a';
-  g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif';
+  g.font = 'bold 9px "Pokemon DS", Arial, sans-serif';
   g.fillText(type === 'center' ? 'POCKETMALS CENTER'
     : type === 'lab' ? 'PROFESSOR LOTUS\'S LAB'
       : type.startsWith('gym') ? (type === 'gym2' ? 'SOLARA CITY GYM' : type === 'gym3' ? 'OMBRA WOODS GYM' : 'COVO TOWN GYM')
       : MAPS[S ? S.map : 'pocketown'].name.toUpperCase(), 12, 17);
   g.fillStyle = '#8197ae';
   g.fillRect(12, 23, 296, 1);
-  g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+  g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
   if (S && S.party.length) {
     g.fillStyle = '#b8c9da';
     g.fillText('POCKETMALS FIELD GUIDE', 12, 37);
@@ -5182,9 +5182,9 @@ function drawLowerScreen() {
       g.strokeRect(12.5, 45.5, 111, 95);
     }
     g.fillStyle = '#b8c9da';
-    g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
     g.fillText('YOUR TEAM', 139, 51);
-    g.font = '7px "Pixelify Sans", Arial, sans-serif';
+    g.font = '7px "Pokemon DS", Arial, sans-serif';
     S.party.slice(0, 6).forEach((mal, i) => {
       const y = 58 + i * 26;
       g.fillStyle = '#1b2b40';
@@ -5206,21 +5206,21 @@ function drawLowerScreen() {
     });
   } else {
     g.fillStyle = '#b8c9da';
-    g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
     g.fillText('YOUR ADVENTURE IS WAITING', 12, 37);
     g.fillStyle = '#8fa8bc';
-    g.font = '7px "Pixelify Sans", Arial, sans-serif';
+    g.font = '7px "Pokemon DS", Arial, sans-serif';
     g.fillText('Choose NEW GAME to meet Professor Lotus', 12, 54);
   }
   if (S) {
     g.fillStyle = '#ffd45a';
-    g.font = 'bold 7px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 7px "Pokemon DS", Arial, sans-serif';
     g.fillText(`BADGES ${S.badges.length}/3   SHOES ${S.flags.running ? 'RUN' : 'WALK'}`, 139, 202);
     if (S.flags.repelSteps > 0) g.fillText(`REPEL ${S.flags.repelSteps} STEPS`, 139, 214);
   }
   g.fillStyle = '#9cadc0';
   g.fillRect(12, 211, 296, 1);
-  g.font = '7px "Pixelify Sans", Arial, sans-serif';
+  g.font = '7px "Pokemon DS", Arial, sans-serif';
   g.fillText(S && S.room ? 'A TALK / HEAL   B MENU   DOWN AT DOOR TO EXIT' : 'ARROWS / WASD MOVE   SHIFT SHOES   Z A   X B', 12, 226);
 }
 function drawIntroRoom() {
@@ -5381,7 +5381,7 @@ function drawWorld() {
 }
 function text(s, x, y, c = '#222', size = 8) {
   ctx.fillStyle = c;
-  ctx.font = `bold ${Math.max(9, Math.round(size * 1.45))}px "Pixelify Sans", Arial, sans-serif`;
+  ctx.font = `bold ${Math.max(9, Math.round(size * 1.45))}px "Pokemon DS", Arial, sans-serif`;
   ctx.textRendering = 'geometricPrecision';
   ctx.fillText(s, x, y);
 }
@@ -5493,10 +5493,10 @@ function drawBattle() {
     ctx.fillStyle = '#1b2938';
     ctx.fillRect(22, 88, 276, 48);
     ctx.fillStyle = '#f7f0d6';
-    ctx.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+    ctx.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(B.trainer.name.toUpperCase(), 160, 105, 260);
-    ctx.font = 'bold 12px "Pixelify Sans", Arial, sans-serif';
+    ctx.font = 'bold 12px "Pokemon DS", Arial, sans-serif';
     ctx.fillText('CHALLENGES YOU!', 160, 124, 260);
     ctx.textAlign = 'left';
   } else if (!B.trainer && introAge < 56) {
@@ -5506,10 +5506,10 @@ function drawBattle() {
     ctx.fillStyle = `rgba(25, 39, 48, ${Math.max(0, 0.84 - introAge / 64)})`;
     ctx.fillRect(0, 87, W, 44);
     ctx.fillStyle = '#f9f4df';
-    ctx.font = 'bold 10px "Pixelify Sans", Arial, sans-serif';
+    ctx.font = 'bold 10px "Pokemon DS", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('A WILD POCKETMAL APPEARED!', 160, 105, 306);
-    ctx.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+    ctx.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
     ctx.fillText(malName(B.foe).toUpperCase(), 160, 120, 270);
     ctx.textAlign = 'left';
     for (let i = 0; i < 8; i++) {
@@ -5639,7 +5639,7 @@ function drawUI() {
 function wrap(s, x, y, color = '#fffdf3', maxWidth = 282) {
   const maxLines = 3;
   const makeLines = (fontSize) => {
-    ctx.font = `bold ${fontSize}px "Pixelify Sans", Arial, sans-serif`;
+    ctx.font = `bold ${fontSize}px "Pokemon DS", Arial, sans-serif`;
     const words = String(s).split(/\s+/).filter(Boolean);
     const lines = [];
     let line = '';
@@ -5662,7 +5662,7 @@ function wrap(s, x, y, color = '#fffdf3', maxWidth = 282) {
     lines = makeLines(fontSize);
   }
   ctx.fillStyle = color;
-  ctx.font = `bold ${fontSize}px "Pixelify Sans", Arial, sans-serif`;
+  ctx.font = `bold ${fontSize}px "Pokemon DS", Arial, sans-serif`;
   ctx.textRendering = 'geometricPrecision';
   ctx.textBaseline = 'alphabetic';
   lines.slice(0, maxLines).forEach((line, index) => {
@@ -5736,7 +5736,7 @@ function drawTitle() {
   ctx.lineWidth = 2;
   ctx.strokeRect(44, 18, 232, 41);
   ctx.fillStyle = '#355368';
-  ctx.font = 'bold 29px "Pixelify Sans", Arial, sans-serif';
+  ctx.font = 'bold 29px "Pokemon DS", Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('POCKETMALS', 160, 47);
   ctx.textAlign = 'left';
@@ -6513,16 +6513,16 @@ function drawQuickMenu(g) {
   g.fillStyle = '#294b61';
   g.fillRect(10, 10, 300, 27);
   g.fillStyle = '#fff0bd';
-  g.font = 'bold 10px "Pixelify Sans", Arial, sans-serif';
+  g.font = 'bold 10px "Pokemon DS", Arial, sans-serif';
   g.fillText('Y  /  QUICK POCKET', 19, 27);
   g.fillStyle = '#546e78';
-  g.font = '7px "Pixelify Sans", Arial, sans-serif';
+  g.font = '7px "Pokemon DS", Arial, sans-serif';
   g.fillText('REGISTERED FIELD ITEMS', 19, 49);
   if (!items.length) {
     g.fillStyle = '#30485a';
-    g.font = 'bold 9px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 9px "Pokemon DS", Arial, sans-serif';
     g.fillText('No quick items yet.', 27, 91);
-    g.font = '7px "Pixelify Sans", Arial, sans-serif';
+    g.font = '7px "Pokemon DS", Arial, sans-serif';
     g.fillText('Earn key items during your journey.', 27, 108);
   }
   items.forEach((item, index) => {
@@ -6538,14 +6538,14 @@ function drawQuickMenu(g) {
     g.strokeRect(x + 0.5, y + 0.5, 136, 53);
     g.lineWidth = 1;
     g.fillStyle = selected ? '#fff2c8' : '#294657';
-    g.font = 'bold 8px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 8px "Pokemon DS", Arial, sans-serif';
     g.fillText(item.label.slice(0, 20), x + 7, y + 20);
     g.fillStyle = selected ? '#d5e4e0' : '#627879';
-    g.font = '6px "Pixelify Sans", Arial, sans-serif';
+    g.font = '6px "Pokemon DS", Arial, sans-serif';
     g.fillText(item.hint.slice(0, 25), x + 7, y + 36);
   });
   g.fillStyle = '#4c6670';
-  g.font = '7px "Pixelify Sans", Arial, sans-serif';
+  g.font = '7px "Pokemon DS", Arial, sans-serif';
   g.fillText('ARROWS SELECT   Z USE   X / Y BACK', 19, 218);
 }
 
@@ -6608,7 +6608,7 @@ drawGameMenu = function(g) {
     g.fillRect(15, y + 1, 22, 20);
     g.drawImage(malSprite(mal.name, Math.floor(frame / 6) % 8, 'front', !!mal.shiny), 16, y + 1 + bob, 20, 20);
     g.fillStyle = '#fff0a6';
-    g.font = 'bold 11px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 11px "Pokemon DS", Arial, sans-serif';
     g.fillText('▶', 2, y + 14 + bob);
   }
 
@@ -6624,7 +6624,7 @@ drawGameMenu = function(g) {
     g.fillRect(x + 3, y + 4, 27, 27);
     g.drawImage(malSprite(mal.name, Math.floor(frame / 6 + index) % 8, 'front', !!mal.shiny), x + 4, y + 4 + bob, 25, 25);
     g.fillStyle = '#fff0a6';
-    g.font = 'bold 10px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 10px "Pokemon DS", Arial, sans-serif';
     g.fillText('▶', x - 5, y + 21 + bob);
   }
 
@@ -6639,7 +6639,7 @@ drawGameMenu = function(g) {
   }
   if (menuState?.partySwitchFrom !== undefined && menuState.partySwitchFrom !== null) {
     g.fillStyle = '#fff0bd';
-    g.font = 'bold 7px "Pixelify Sans", Arial, sans-serif';
+    g.font = 'bold 7px "Pokemon DS", Arial, sans-serif';
     g.fillText('CHOOSE THE SLOT TO MOVE THIS PARTNER TO', 18, 232);
   }
 };
