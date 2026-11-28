@@ -90,7 +90,7 @@ const ctx = canvas.getContext('2d');
 const lowerCanvas = document.getElementById('lower-screen');
 const lowerCtx = lowerCanvas.getContext('2d');
 const W = 320, H = 240, TS = 16;
-const CANVAS_DENSITY = 2;
+const CANVAS_DENSITY = 1; // native 320x240 resolution: crisp DS-style pixel art
 for (const screen of [canvas, lowerCanvas]) {
   screen.width = W * CANVAS_DENSITY;
   screen.height = H * CANVAS_DENSITY;
@@ -5346,9 +5346,25 @@ function drawIntroRoom() {
   ctx.fillStyle = '#20384c'; ctx.fillRect(5, 207, 310, 27);
   text('A LETTER FROM PROFESSOR LOTUS IS ON THE DESK.', 13, 224, '#fff0c5', 7);
 }
+function drawFallbackMap() {
+  ctx.fillStyle = '#78b8dc'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#c2dca1'; ctx.fillRect(0, 126, W, H - 126);
+  ctx.fillStyle = '#6caa72'; ctx.fillRect(0, 158, W, H - 158);
+  // Native-resolution blocky scenery so a bad map entry never crashes the game.
+  for (let x = 0; x < W; x += 32) {
+    ctx.fillStyle = '#548d5c'; ctx.fillRect(x + 5, 100, 22, 30);
+    ctx.fillStyle = '#39754a'; ctx.fillRect(x, 88, 32, 24);
+    ctx.fillStyle = '#7dbb67'; ctx.fillRect(x + 4, 92, 24, 16);
+  }
+  ctx.fillStyle = '#23374c'; ctx.fillRect(8, 8, W - 16, 24);
+  text('MELLORA REGION', 16, 24, '#fff', 9);
+  ctx.fillStyle = '#24394b'; ctx.fillRect(8, H - 36, W - 16, 28);
+  text('map data unavailable', 16, H - 18, '#fff', 8);
+}
 function drawWorld() {
   if (S.room) return drawRoom();
   const md = MAPS[S.map];
+  if (!md || !Array.isArray(md.rows) || !md.rows.length) { drawFallbackMap(); return; }
   let px = S.x * TS, py = S.y * TS;
   if (moving) {
     px = (moving.fx + (S.x - moving.fx) * moving.t) * TS;
@@ -5368,7 +5384,7 @@ function drawWorld() {
     for (let x = left; x <= right; x++) drawTile(md.rows[y][x], x * TS, y * TS, x, y);
   }
   drawForestCanopies(top - 2, bottom + 1);
-  for (const n of NPCS[S.map]) {
+  for (const n of (NPCS[S.map] || [])) {
     if (npcAt(n.x, n.y)) {
       const role = n.id === 'mimi' ? 'mimi'
         : n.id === 'lumi' || n.id === 'lumi2' ? 'shy'
