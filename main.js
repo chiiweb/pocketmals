@@ -2304,7 +2304,7 @@ function titleChoices() {
 // ---------- World ----------
 let moving = null; // {fx,fy,t}
 const tileAt = (x, y) => (MAPS[S.map].rows[y] || '')[x] || 'T';
-const npcAt = (x, y) => NPCS[S.map].find((n) => n.x === x && n.y === y
+const npcAt = (x, y) => (NPCS[S.map] || []).find((n) => n.x === x && n.y === y
   && !(n.id === 'mimi' && S.flags.rival)
   && !(n.id === 'guard' && S.flags.starter)
   && !(n.id === 'lumi2' && !S.flags.lumiMet));
@@ -2444,7 +2444,7 @@ function drawAreaTitleCard() {
 
 async function afterStep() {
   if (S.room) return;
-  for (const n of NPCS[S.map]) {
+  for (const n of (NPCS[S.map] || [])) {
     if (n.trainer && !S.beaten[S.map + n.x + n.y] && Math.abs(n.x - S.x) + Math.abs(n.y - S.y) === 1) {
       return talk(n);
     }
@@ -6392,7 +6392,7 @@ gainXp = async function(mal, xp) {
 const afterStepOriginal = afterStep;
 afterStep = async function() {
   if (S.room) return;
-  for (const npc of NPCS[S.map]) {
+  for (const npc of (NPCS[S.map] || [])) {
     if (npc.trainer && !S.beaten[S.map + npc.x + npc.y] && Math.abs(npc.x - S.x) + Math.abs(npc.y - S.y) === 1) {
       return talk(npc);
     }
