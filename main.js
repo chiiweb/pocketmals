@@ -4346,10 +4346,11 @@ function drawPerson(px, py, color, dir, role = 'villager', motion = 'idle') {
       : motion === 'wave' ? Math.sin(frame / 9) * 1.3
         : motion === 'gesture' ? Math.sin(frame / 18) * 0.7
           : motion === 'research' ? Math.sin(frame / 22) * 0.45 : idleBreath;
-    const drawX = Math.round(px - 4), drawY = Math.round(py - 9 + bob);
+    const drawX = Math.round(px - 3), drawY = Math.round(py - 9 + bob);
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(atlas, sourceX, sourceY, 48, 72, drawX, drawY, 18, 27);
+    // The 48x72 atlas cell is authored at 3x scale; render it at 16x24 for exact pixel alignment.
+    ctx.drawImage(atlas, sourceX, sourceY, 48, 72, drawX, drawY, 16, 24);
     drawAtlasHumanGesture(ctx, drawX, drawY, spriteRole, spriteDirection, motion, speaking);
     ctx.restore();
     return;
