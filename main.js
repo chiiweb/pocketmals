@@ -1,27 +1,20 @@
 import { MALS, MAL_LIST, MOVES, ITEMS, TMS, MAPS, TYPE_COLORS, EVOLUTIONS, effectiveness, NAME_ALIASES, ABILITY_INFO, ABILITY_EFFECTS } from './data.js';
 import { music, MAL_CRY_PROFILES, musicLayers } from './audio-data.js';
 import { MAL_SPRITE_MANIFEST } from './sprite-manifest.js';
-const STARTER_NAMES = ['Kangol', 'Bubbish', 'Lizrout'];
+const STARTER_NAMES = ['Lovlittle', 'Malittle'];
 const STARTER_PROFILES = Object.freeze({
-  Kangol: {
-    personality: 'brave',
-    label: 'BRAVE',
-    cardTag: 'BRAVE  ATK +10%',
-    description: 'Kangol is fearless and eager to lead. Its brave nature strengthens Attack but makes it a little less quick.',
-    statText: 'ATTACK +10%  /  SPEED -10%',
-  },
-  Bubbish: {
+  Lovlittle: {
     personality: 'gentle',
     label: 'GENTLE',
     cardTag: 'GENTLE  DEF +10%',
-    description: 'Bubbish is patient, thoughtful, and kind. Its gentle nature improves Defence while it takes its time preparing a hit.',
+    description: 'Lovlittle is soft-hearted and attentive. Its gentle nature improves Defence while it takes its time preparing a hit.',
     statText: 'DEFENCE +10%  /  ATTACK -10%',
   },
-  Lizrout: {
+  Malittle: {
     personality: 'curious',
     label: 'CURIOUS',
     cardTag: 'CURIOUS  SPD +10%',
-    description: 'Lizrout is alert and always investigating something new. Its curious nature improves Speed, though it is less sturdy.',
+    description: 'Malittle is curious and mischievous, always peeking around the next corner. Its curious nature improves Speed, though it is less sturdy.',
     statText: 'SPEED +10%  /  DEFENCE -10%',
   },
 });
@@ -31,7 +24,7 @@ const PERSONALITY_MODIFIERS = Object.freeze({
   curious: { def: 0.90, spd: 1.10 },
 });
 const RIVAL_STARTERS = {
-  Kangol: 'Bubbish', Bubbish: 'Lizrout', Lizrout: 'Kangol',
+  Lovlittle: 'Malittle', Malittle: 'Lovlittle',
   Seedkit: 'Cinderp', Cinderp: 'Ripplet', Ripplet: 'Seedkit',
 };
 
