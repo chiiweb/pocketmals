@@ -2095,7 +2095,7 @@ function loadFromObject(loaded) {
     S.y = y;
   }
   if (!['up', 'down', 'left', 'right'].includes(S.dir)) S.dir = 'down';
-  S.flags = S.flags && typeof S.flags === 'object' ? S.flags : {};
+  S.flags = S.flags && typeof S.flags === 'object' && !Array.isArray(S.flags) ? S.flags : {};
   S.flags.eliteFourWins = Array.isArray(S.flags.eliteFourWins)
     ? [...new Set(S.flags.eliteFourWins.filter((member) => [1, 2, 3, 4].includes(member)))]
     : [];
@@ -2130,23 +2130,32 @@ function loadFromObject(loaded) {
   };
   S.party = Array.isArray(S.party) ? S.party.map(sanitizeImportedMal).filter(Boolean) : [];
   S.box = Array.isArray(S.box) ? S.box.map(sanitizeImportedMal).filter(Boolean) : [];
-  if (S.seen && typeof S.seen === 'object') {
-    const seen = {};
-    for (const k of Object.keys(S.seen)) seen[NAME_ALIASES[k] || k] = true;
-    S.seen = seen;
-  }
-  if (S.caught && typeof S.caught === 'object') {
-    const caught = {};
-    for (const k of Object.keys(S.caught)) caught[NAME_ALIASES[k] || k] = true;
-    S.caught = caught;
-  }
+  if (S.party.length > 6) S.box.unshift(...S.party.splice(6));
+  const cleanDexFlags = (source) => {
+    const result = {};
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return result;
+    for (const key of Object.keys(source)) {
+      const speciesName = NAME_ALIASES[key] || key;
+      if (MALS[speciesName]) result[speciesName] = true;
+    }
+    return result;
+  };
+  S.seen = cleanDexFlags(S.seen);
+  S.caught = cleanDexFlags(S.caught);
+  S.evolved = cleanDexFlags(S.evolved);
+  S.shinyCaught = cleanDexFlags(S.shinyCaught);
 
   if (S.flags.teamTinkIntroSeen && !S.flags.teamMeridianIntroSeen) S.flags.teamMeridianIntroSeen = true;
   S.season = ['spring', 'summer', 'autumn', 'winter'].includes(S.season) ? S.season : 'spring';
-  S.bag = S.bag && typeof S.bag === 'object' ? S.bag : {};
-  S.seen = S.seen && typeof S.seen === 'object' ? S.seen : {};
-  S.caught = S.caught && typeof S.caught === 'object' ? S.caught : {};
-  S.evolved = S.evolved && typeof S.evolved === 'object' ? S.evolved : {};
+  const savedBag = S.bag && typeof S.bag === 'object' && !Array.isArray(S.bag) ? S.bag : {};
+  S.bag = {};
+  for (const itemName of [...Object.keys(ITEMS), ...Object.keys(TMS)]) {
+    const amount = Number(savedBag[itemName]);
+    S.bag[itemName] = Number.isFinite(amount) ? Math.max(0, Math.min(999, Math.floor(amount))) : 0;
+  }
+  S.seen = S.seen && typeof S.seen === 'object' && !Array.isArray(S.seen) ? S.seen : {};
+  S.caught = S.caught && typeof S.caught === 'object' && !Array.isArray(S.caught) ? S.caught : {};
+  S.evolved = S.evolved && typeof S.evolved === 'object' && !Array.isArray(S.evolved) ? S.evolved : {};
   S.party = Array.isArray(S.party)
     ? S.party.filter((entry) => entry && typeof entry === 'object' && typeof entry.name === 'string') : [];
   S.box = Array.isArray(S.box)
@@ -2155,9 +2164,10 @@ function loadFromObject(loaded) {
   S.shinyCaught = S.shinyCaught && typeof S.shinyCaught === 'object' ? S.shinyCaught : {};
   S.beaten = S.beaten && typeof S.beaten === 'object' ? S.beaten : {};
   S.badges = Array.isArray(S.badges) ? S.badges : [];
-  S.gender = S.gender || 'boy';
-  S.name = S.name || 'Trainer';
-  S.look = S.look || (S.gender === 'girl' ? '#d9638c' : '#427fc0');
+  S.gender = ['boy', 'girl'].includes(S.gender) ? S.gender : 'boy';
+  S.name = typeof S.name === 'string' && S.name.trim() ? S.name.trim().slice(0, 12) : 'Trainer';
+  S.look = /^#[\\da-f]{6}$/i.test(String(S.look || '')) ? S.look : (S.gender === 'girl' ? '#d9638c' : '#427fc0');
+  if (S.flags.starter && !MALS[S.flags.starter]) S.flags.starter = null;
   if (S.flags.starter) S.flags.maldex = true;
   if (S.flags.starter) {
     const starterProfile = STARTER_PROFILES[S.flags.starter];
