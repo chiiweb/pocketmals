@@ -54,3 +54,11 @@ if (/for \\(const \\w+ of NPCS\\[S\\.map\\]\\)/.test(main)) fail('NPC iteration 
 if (!html.includes('main.js?v=')) fail('main.js cache-busting version missing.');
 if (!music.title || !music.covo || !music.route1 || !music.battle || !music.opening) fail('Required music tracks missing.');
 console.log('Validated species, moves, abilities, cries, evolutions, maps, exits, sprite manifest, DOM ids, and music.');
+
+const starterNames = ['Lovlittle', 'Malittle'];
+for (const name of starterNames) if (!MALS[name]) fail('Missing starter species: ' + name);
+if (!main.includes("const STARTER_NAMES = ['Lovlittle', 'Malittle'];")) fail('Starter selection is not the intended two-species choice.');
+for (const name of starterNames) {
+  if (!main.includes(name + ': {')) fail('Missing starter personality profile: ' + name);
+}
+if (!main.includes("Lovlittle: 'Malittle', Malittle: 'Lovlittle'")) fail('Rival starter pairing is incomplete.');
